@@ -6,13 +6,14 @@
 #include <cstdint>
 #include "uop_msb.h"
 
-using namespace uop_msb;
+using namespace uop_msb;    //calls the module support board as we are using that
 
+//We will  be using functions which class allows for. variables and methods are hidden
 class Sampling{
 
 private: //Private Properties
 struct Sample{
-unsigned int _ldrEng; //Average Engineering Value over x samples
+unsigned int _ldrEng; //Average Engineering Value over x samples to annoy the mathematicians
 float _Temp;
 float _Press;}data;
 AnalogIn _ldr;

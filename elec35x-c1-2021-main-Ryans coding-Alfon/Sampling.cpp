@@ -24,6 +24,3 @@ void Sampling::UpdateSample(){
             data = {0, 0, 0};
                             }
 
-
-
-
