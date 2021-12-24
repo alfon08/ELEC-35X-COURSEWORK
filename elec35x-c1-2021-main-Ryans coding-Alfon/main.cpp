@@ -73,7 +73,7 @@ void bufferSample(){
                 // time_t seconds = time(NULL);
                 // strftime(time_date, 32, "%x: %I:%M:%S %p\n", localtime(&seconds));
                 mainQueue.call(printf, "data recorded in buffer at %s", ldr.Samptime_date);
-                mes.SpaceAllocate(ldr.Samptime_date, ldr.dataAVG.ldrEngAVG, ldr.dataAVG. TempAVG, ldr.dataAVG.PressAVG);
+                mes.SpaceAllocate(ldr.Samptime_date, ldr.dataAVG.ldrEngAVG, ldr.dataAVG.TempAVG, ldr.dataAVG.PressAVG);
                 t4.flags_set(1);
                 i = ++i;
                     if(i == (SDwriteFreq)){ //Write to sd card 
