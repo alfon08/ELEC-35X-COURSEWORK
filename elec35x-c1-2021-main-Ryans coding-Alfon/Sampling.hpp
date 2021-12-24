@@ -15,7 +15,7 @@ private: //Private Properties
 struct Sample{
 unsigned int _ldrEng; //Average Engineering Value over x samples to annoy the mathematicians
 float _Temp;
-float _Press;}data;
+float _Press;}data;     // _Press -  to remind us these are internal use only and reduce accidental direct change
 AnalogIn _ldr;
 EnvSensor BMP280;
 unsigned int samples;
