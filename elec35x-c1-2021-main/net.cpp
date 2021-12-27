@@ -3,11 +3,19 @@
 #include "uop_msb.h"
 #include "rtos/ThisThread.h"
 #include "azure_c_shared_utility/xlogging.h"
+#include <chrono>
 #include <cstring>
 #include <string.h>
 #include "buffer.hpp"
 
 //NetworkInterface* netIF;
+extern int iotLight;
+extern float iotTemp;
+extern float iotPress;
+extern char iotdate[15];
+//extern char Samptime_date[20];
+
+
 extern NetworkInterface *_defaultSystemNetwork;
 time_t timestamp ;
 extern Sampling ldr;
@@ -38,6 +46,16 @@ bool connect(){
     return true;
 }
 
+void disconnect(){
+        LogInfo("disconnecting to the network");
+
+    int ret = _defaultSystemNetwork->disconnect();
+    if (ret != 0) {
+        LogError("Connection error: %d", ret);
+    }
+}
+
+
 bool setTime(){
 
         LogInfo("Getting time from the NTP server");
@@ -52,6 +70,11 @@ bool setTime(){
     LogInfo("Time: %s", ctime(&timestamp));
     set_time(timestamp);
     return true;
+}
+
+void matrixUpdate(){
+    
+
 }
 
 extern DigitalOut led1; 
@@ -200,26 +223,19 @@ void iothubrecord() {
     char message[80];
     while (true) {
             int i = 1;
-            ThisThread::flags_wait_any(1); 
+            ThisThread::flags_wait_all(1); 
             ThisThread::flags_clear(1);
 
         if (message_received) {
             // If we have received a message from the cloud, don't send more messeges
             break;
         }
- 
-        int Light = ldr.dataAVG.ldrEngAVG;
-        double Temp  = ldr.dataAVG.TempAVG;
-        double Press = ldr.dataAVG.PressAVG;
-        int stringLength = strlen(ldr.dataAVG.Date_Time);
-        // char date_time [32];
-        // for(int i = 0; i <= (stringLength -1); i++){
-        // date_time[i] = ldr.dataAVG.Date_Time[stringLength -1-i];
-        //  }
-        // ldr.dataAVG.Date_Time[stringLength] = '\0';
 
-        sprintf(message, "{ \"LightLevel\" : %d, \"Temperature\" : %5.2f, \"Pressure\" : %5.2f}", Light, Temp, Press/*, date_time*/);
-        LogInfo("Sending: \"%s\"", message);
+
+
+        //sprintf(message, "{ \"SampTime\" : %s}", iotdate);
+        sprintf(message, "{ \"LightLevel\" : %d, \"Temperature\" : %5.2f, \"Pressure\" : %5.2f, \"SampTime\" : %s}", iotLight, iotTemp, iotPress, iotdate);
+        //LogInfo("Sending: \"%s\"", message);
 
         message_handle = IoTHubMessage_CreateFromString(message);
         if (message_handle == nullptr) {

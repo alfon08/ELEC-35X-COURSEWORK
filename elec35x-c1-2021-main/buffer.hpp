@@ -5,15 +5,13 @@
 #include "mbed.h"
 #include "uop_msb.h"
 
-
-
 class buffer { 
     private:
         int ldralarm;
         float Tempalarm;
         float Pressalarm;
-        int ldralarm_low = 50000;
-        int ldralarm_high = 3000;
+        int ldralarm_high = 50000;
+        int ldralarm_low = 30000;
         float tempalarm_low = 15.00;
         float tempalarm_high = 22.00;
         float pressalarm_low = 500.00;
@@ -42,6 +40,8 @@ class buffer {
             Press = p; // sets passed in value for p to press
                                         }
 };
+
+
 
 extern Mail<buffer, 16> mail_box; // brings in mailbox which can be seen at main
 extern EventQueue mainQueue;

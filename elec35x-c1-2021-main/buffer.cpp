@@ -4,14 +4,21 @@
 #include "mbed.h"
 #include "rtos/ThisThread.h"
 #include "Sampling.hpp"
+#include "net.hpp"
 
-Buzzer Buzz;
+
+int iotLight;
+float iotTemp;
+float iotPress;
+char iotdate_time[32];
+
 Timer buzzT;
 bool AckPress = false;
-
 DigitalOut redLED(TRAF_RED1_PIN);  // red led to hightlight buffer error
 DigitalOut greenLED(TRAF_GRN1_PIN); //  green light to highlight buffer is healthy
 microseconds SilenceT = 0s;
+extern Thread t4;
+Buzzer alarm;
 
 void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
     buffer* message = mail_box.try_alloc();
@@ -23,11 +30,16 @@ void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
         int stringLength = strlen(dt);
         for(int i = 0; i <= (stringLength -1); i++){
         message->date_time[i] = dt[stringLength -1-i];
+        iotdate_time[stringLength -1-i] = dt[stringLength -1-i];
         }
         date_time[stringLength] = '\0';
+        iotdate_time[stringLength] = '\0';
         message-> ldr = l; //write passed values to message type buffer*
         message-> Temp = T;
         message-> Press = P;
+        iotLight = l;
+        iotTemp = T;
+        iotPress = P;
         osStatus stat = mail_box.put(message);  //send message
             if (stat != osOK) { //if message fails error is recorde
                 redLED = 1; //red light comes on
@@ -47,27 +59,32 @@ void buffer::checkvalues (int l, float T, float P){
     SilenceT = buzzT.elapsed_time();
     if ((AckPress == false) | (SilenceT > 60s)){
     if((ldralarm >= ldralarm_high | ldralarm <= ldralarm_low) ){
-        Buzz.playTone("C", Buzzer::LOWER_OCTAVE);
+
+        alarm.playTone("C", Buzzer::LOWER_OCTAVE);
         mainQueue.call(printf,"Light Level Warning!!\n");
+
     }
 
     if(Tempalarm >= tempalarm_high | Tempalarm <= tempalarm_low){
-        Buzz.playTone("C", Buzzer::LOWER_OCTAVE);
+        alarm.playTone("C", Buzzer::LOWER_OCTAVE);
         mainQueue.call(printf,"Temperature Level Warning!!\n");
+
     }
 
     if(Pressalarm >= pressalarm_high | Pressalarm <= pressalarm_low){
-        Buzz.playTone("C", Buzzer::LOWER_OCTAVE);
+        alarm.playTone("C", Buzzer::LOWER_OCTAVE);
         mainQueue.call(printf,"Pressure Level Warning!!\n");
     }
     buzzT.reset();
+
     }
 }
 
 void BuzzStop(){
-     Buzz.rest();
+     alarm.rest();
      AckPress = true;
      buzzT.start();
+     mainQueue.call(printf,"Alarm Silenced\n");
 }
 
 

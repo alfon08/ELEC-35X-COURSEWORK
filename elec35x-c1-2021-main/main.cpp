@@ -15,6 +15,7 @@
 #include <iostream>
 #include "sd.hpp"
 #include "net.hpp"
+#include "matrix.hpp"
 
 InterruptIn Bluebtn(USER_BUTTON);//used for printing out what is in the SD card
 InterruptIn btnA(BTN1_PIN);//used for printing out what is in the SD card
@@ -38,7 +39,6 @@ Thread t4(osPriorityNormal); //IOTHub Thread
 
 microseconds tmrUpdate = 0ms; //time to compare 
 EventQueue mainQueue;
-extern Buzzer Buzz;
 extern void BuzzStop();
 
 
@@ -91,7 +91,8 @@ void bufferSample(){
 //Thread 4
 void iotazure(){ 
     while(true){
-                    iothubrecord(); // iothub function
+                    //iothubrecord(); // iothub function
+
     }
 }
 
@@ -99,9 +100,10 @@ void iotazure(){
 int main() {
     
 
-    if (!connect()) return -1; // obtain network connection
-    if (!setTime()) return -1; // obtain time and update RTC. 
-
+    //if (!connect()) return -1; // obtain network connection
+    //if (!setTime()) return -1; // obtain time and update RTC
+        matrix_bar start;
+        start.BarLight(4093);
         SDCardSetup(); // Sets up SD card
         btnA.rise(&Queue_Read); //ISR for blue button which reads SD card
         Bluebtn.rise(&BuzzStop);

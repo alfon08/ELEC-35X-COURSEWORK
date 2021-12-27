@@ -24,13 +24,14 @@ unsigned int samples; // samples counter
 
 
 public: //Constructor and Member functions
-char Samptime_date[32]; // char for date and time
+char Samptime_date[20]; // char for date and time
 //structure for average samples
 struct Samps{
 unsigned int ldrEngAVG; //Average Engineering Value over x samples
 float TempAVG;
 float PressAVG;
 char Date_Time[32];}dataAVG;
+int tdsec;
 
 void Sample (); // sample function
 void UpdateSample(); // update samples function
