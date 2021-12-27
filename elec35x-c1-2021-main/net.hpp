@@ -23,7 +23,9 @@
 
 
 
+
 bool connect();
+void disconnect();
 bool setTime();
 void iothubrecord();
 void sendzure(int l, float t, float p);

@@ -3,9 +3,12 @@
 #include "mbed.h"
 #include "rtos/ThisThread.h"
 #include <cstdint>
+#include <string>
 #include "BMP280_SPI.h"
 #include "buffer.hpp"
 
+long secos;
+char iotdate[15];
 
 
 void Sampling::Sample (){ // function to take samples
@@ -18,7 +21,10 @@ void Sampling::Sample (){ // function to take samples
 
 void Sampling::UpdateSample(){ // function to average samples
             time_t seconds = time(NULL); //get timestamp
-            strftime(Samptime_date, 32, "%x: %I:%M:%S %p\n", localtime(&seconds)); //rerocds date and time as a string
+            secos = (seconds);
+            std::sprintf(iotdate, "%ld000", secos);
+
+            strftime(Samptime_date, 32, "%x %X  ", localtime(&seconds)); //rerocds date and time as a string
             //pass data as a structure for date and time, light, temp and press
             dataAVG = {(data._ldrEng/samples), (data._Temp/samples),  (data._Press/samples), (Samptime_date[32])};
             samples = 0; // reset samples

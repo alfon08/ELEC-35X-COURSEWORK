@@ -5,11 +5,11 @@ SDBlockDevice sdc(PB_5, PB_4, PB_3, PF_3);
 
 
 void SDCardSetup(){
-    for(int z = 0;z >2;z++) { //loop to init sd card sometimes doesnt always do it first time??
+    //for(int z = 0;z >2;z++) { //loop to init sd card sometimes doesnt always do it first time??
     int err;
     err=sdc.init();
     if ( 0 != err) {
-        mainQueue.call(printf,"Init failed %d\n",err);}}
+        mainQueue.call(printf,"Init failed %d\n",err);}
     FATFileSystem fs("sd", &sdc);
     FILE *fp = fopen("/sd/test.txt","w");
     if(fp == NULL) {
@@ -64,9 +64,9 @@ void SDCardWrite(){
 void SDCardRead(){
 
              FILE *fp = fopen("/sd/test.txt","r");
-             char buff[64]; 
+             char buff[80]; 
              while (!feof(fp)) {
-             fgets(buff, 63, fp);
+             fgets(buff, 79, fp);
              printf("%s\n", buff);}
              fclose(fp);
              mainQueue.call(printf, "sd card Read complete\n");
