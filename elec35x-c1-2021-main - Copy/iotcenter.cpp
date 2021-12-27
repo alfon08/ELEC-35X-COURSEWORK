@@ -1,85 +1,34 @@
-#include "net.hpp"
 #include "mbed.h"
-#include "uop_msb.h"
 #include "rtos/ThisThread.h"
+#include "NTPClient.h"
+
+#include "certs.h"
+#include "iothub.h"
+#include "iothub_client_options.h"
+#include "iothub_device_client.h"
+#include "iothub_message.h"
+#include "azure_c_shared_utility/shared_util_options.h"
+#include "azure_c_shared_utility/threadapi.h"
+#include "azure_c_shared_utility/tickcounter.h"
 #include "azure_c_shared_utility/xlogging.h"
-#include <chrono>
+
+#include "iothubtransportmqtt.h"
+#include "azure_cloud_credentials.h"
 #include <cstring>
 #include <string.h>
-#include "buffer.hpp"
 
-//NetworkInterface* netIF;
-extern int iotLight;
-extern float iotTemp;
-extern float iotPress;
-extern char iotdate[15];
-//extern char Samptime_date[20];
+/**
+ * This example sends and receives messages to and from Azure IoT Hub.
+ * The API usages are based on Azure SDK's official iothub_convenience_sample.
+ */
 
-
-extern NetworkInterface *_defaultSystemNetwork;
-time_t timestamp ;
-extern Sampling ldr;
+// Global symbol referenced by the Azure SDK's port for Mbed OS, via "extern"
+NetworkInterface *_defaultSystemNetwork;
 static bool message_received = false;
-    bool trace_on = MBED_CONF_APP_IOTHUB_CLIENT_TRACE;
-    tickcounter_ms_t interval = 100;
-    IOTHUB_CLIENT_RESULT res;
 
-        IOTHUB_DEVICE_CLIENT_HANDLE client_handle = IoTHubDeviceClient_CreateFromConnectionString(
-        azure_cloud::credentials::iothub_connection_string,
-        MQTT_Protocol );
-
-bool connect(){
-        LogInfo("Connecting to the network");
-
-    _defaultSystemNetwork = NetworkInterface::get_default_instance();
-    if (_defaultSystemNetwork == nullptr) {
-        LogError("No network interface found");
-        return false;
-    }
-
-    int ret = _defaultSystemNetwork->connect();
-    if (ret != 0) {
-        LogError("Connection error: %d", ret);
-        return false;
-    }
-    LogInfo("Connection success, MAC: %s", _defaultSystemNetwork->get_mac_address());
-    return true;
-}
-
-void disconnect(){
-        LogInfo("disconnecting to the network");
-
-    int ret = _defaultSystemNetwork->disconnect();
-    if (ret != 0) {
-        LogError("Connection error: %d", ret);
-    }
-}
-
-
-bool setTime(){
-
-        LogInfo("Getting time from the NTP server");
-
-    NTPClient ntp(_defaultSystemNetwork);
-    ntp.set_server("time.google.com", 123);
-    time_t timestamp = ntp.get_timestamp();
-    if (timestamp < 0) {
-        LogError("Failed to get the current time, error: %ud", timestamp);
-        return false;
-    }
-    LogInfo("Time: %s", ctime(&timestamp));
-    set_time(timestamp);
-    return true;
-}
-
-void matrixUpdate(){
-    
-
-}
-
-extern DigitalOut led1; 
-extern DigitalOut led2;
-
+DigitalOut led1(LED1); 
+DigitalOut led2(LED2);
+DigitalIn blueButton(USER_BUTTON);
 
 
 static void on_connection_status(IOTHUB_CLIENT_CONNECTION_STATUS result, IOTHUB_CLIENT_CONNECTION_STATUS_REASON reason, void* user_context)
@@ -137,15 +86,11 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
     printf("\r\nDevice Method called for device %s\r\n", device_id);
     printf("Device Method name:    %s\r\n", method_name);
     printf("Device Method payload: %.*s\r\n", (int)size, (const char*)payload);
-    
-    //If true plot light
+
     if ( strncmp("true", (const char*)payload, size) == 0 ) {
         printf("LED ON\n");
         led1 = 1;
-
-
     } else {
-        //Else plot temperature
         printf("LED OFF\n");
         led1 = 0;
     }
@@ -153,7 +98,7 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
     int status = 200;
     //char RESPONSE_STRING[] = "{ \"Response\": \"This is the response from the device\" }";
     char RESPONSE_STRING[64];
-    //sprintf(RESPONSE_STRING, "{ \"Response\" : %d }", blueButton.read());
+    sprintf(RESPONSE_STRING, "{ \"Response\" : %d }", blueButton.read());
 
     printf("\r\nResponse status: %d\r\n", status);
     printf("Response payload: %s\r\n\r\n", RESPONSE_STRING);
@@ -169,11 +114,20 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
     return status;
 }
 
-void iothubrecord() {
+void azureDemo() {
+    bool trace_on = MBED_CONF_APP_IOTHUB_CLIENT_TRACE;
+    tickcounter_ms_t interval = 100;
+    IOTHUB_CLIENT_RESULT res;
 
     LogInfo("Initializing IoT Hub client");
     IoTHub_Init();
 
+
+
+    IOTHUB_DEVICE_CLIENT_HANDLE client_handle = IoTHubDeviceClient_CreateFromConnectionString(
+        azure_cloud::credentials::iothub_connection_string,
+        MQTT_Protocol
+    );
     if (client_handle == nullptr) {
         LogError("Failed to create IoT Hub client handle");
         goto cleanup;
@@ -225,22 +179,23 @@ void iothubrecord() {
     // or until we receive a message from the cloud
     IOTHUB_MESSAGE_HANDLE message_handle;
     char message[80];
-    while (true) {
-            int i = 1;
-            ThisThread::flags_wait_all(1); 
-            ThisThread::flags_clear(1);
-
+    for (int i = 0; i < 10; ++i) {
         if (message_received) {
             // If we have received a message from the cloud, don't send more messeges
             break;
         }
+        //Send data in this format:
+        /*
+            {
+                "LightLevel" : 0.12,
+                "Temperature" : 36.0
+            }
 
-
-
-        //sprintf(message, "{ \"SampTime\" : %s}", iotdate);
-        sprintf(message, "{ \"LightLevel\" : %d, \"Temperature\" : %5.2f, \"Pressure\" : %5.2f, \"SampTime\" : %s}", iotLight, iotTemp, iotPress, iotdate);
-        printf("Light level: %d, Temperature: %f, Pressure: %f\n", iotLight, iotTemp, iotPress );
-        //LogInfo("Sending: \"%s\"", message);
+        */
+        double light = (float) i;
+        double temp  = (float)36.0f-0.1*(float)i;
+        sprintf(message, "{ \"LightLevel\" : %5.2f, \"Temperature\" : %5.2f }", light, temp);
+        LogInfo("Sending: \"%s\"", message);
 
         message_handle = IoTHubMessage_CreateFromString(message);
         if (message_handle == nullptr) {
@@ -256,7 +211,7 @@ void iothubrecord() {
             goto cleanup;
         }
 
-        //ThisThread::sleep_for(60s);
+        ThisThread::sleep_for(60s);
     }
 
     // If the user didn't manage to send a cloud-to-device message earlier,
@@ -264,15 +219,10 @@ void iothubrecord() {
     while (!message_received) {
         // Continue to receive messages in the communication thread
         // which is internally created and maintained by the Azure SDK.
-        //sleep();
+        sleep();
     }
 
 cleanup:
     IoTHubDeviceClient_Destroy(client_handle);
     IoTHub_Deinit();
 }
-
-
-
-
-
