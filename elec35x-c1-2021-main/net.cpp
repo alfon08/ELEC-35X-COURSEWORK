@@ -138,10 +138,12 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
     printf("Device Method name:    %s\r\n", method_name);
     printf("Device Method payload: %.*s\r\n", (int)size, (const char*)payload);
     
-    //If true plot light
+    //If true plot light level
     if ( strncmp("true", (const char*)payload, size) == 0 ) {
         printf("LED ON\n");
         led1 = 1;
+
+        
 
 
     } else {

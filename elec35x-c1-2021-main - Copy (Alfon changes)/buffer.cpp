@@ -5,7 +5,10 @@
 #include "rtos/ThisThread.h"
 #include "Sampling.hpp"
 #include "net.hpp"
+#include "matrix.hpp"
 
+//Queues - "A message can be a integer or pointer value  to a certain type T that is sent to a thread or interrupt service routine."
+Queue<uint32_t, 10> queue;
 
 int iotLight;
 float iotTemp;
@@ -35,6 +38,8 @@ void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
         date_time[stringLength] = '\0';
         iotdate_time[stringLength] = '\0';
         message-> ldr = l; //write passed values to message type buffer*
+        //Write to matrix queue as 32-bit integer (same size as pointer)
+        bool sent = queue.try_put((uint32_t*)ldr); //Non-blocking
         message-> Temp = T;
         message-> Press = P;
         iotLight = l;
@@ -87,5 +92,16 @@ void BuzzStop(){
      mainQueue.call(printf,"Alarm Silenced\n");
 }
 
+void matrix_bar::plotTemp()
+{
+    for (int row = 0; row < 8; row++){
 
+        uint32_t** rx;
+        bool success = queue.try_get_for(5s, rx);
+        uint32_t value = (uint32_t)rx;
+        printf("Sample %i: %i", row, value);
+        matrix_bar::BarLight(value, row);
+
+    }
+}
 

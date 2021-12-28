@@ -113,7 +113,6 @@ int main() {
         t4.start(iotazure); // iothub thread start
         Samptick.attach(&Flag_Set, sampRate); // ISR for control of sample rate
         updatetmr.start(); //timer for buffer write
-        
     while (true) {
        mainQueue.dispatch_forever(); // main Queue for serial message management
     }
