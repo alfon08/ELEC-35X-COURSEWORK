@@ -152,3 +152,57 @@ void matrix_bar::BarTemp (int data, int row){
     }
 }
 
+void matrix_bar::BarPres (int data, int row){
+    if(data < 300){ //0 or no data
+        numberLED(0x00, 0X00, row);
+    }
+    if(data >=300 && data< 350){ // one LED on 
+        numberLED(0x01, 0x00, row);
+    }
+    if(data >=350 && data< 400){ // two LEDs on
+        numberLED(0x03, 0x00, row);
+    }
+    if(data >= 400 && data< 450){ // three LEDs on
+        numberLED(0x07, 0x00, row);
+    }
+    if(data >= 450 && data< 500){ // four LEDs on 
+        numberLED(0x0F, 0x00, row);
+    }
+    if(data >=500 && data< 550){ // five LEDs on 
+        numberLED(0x1F, 0x00, row);
+    }
+    if(data >=550 && data< 600){ //six LEDs on
+        numberLED(0x3F, 0x00, row);
+    }
+    if(data >=600 && data< 650){ //seven LEDs on
+        numberLED(0x7F, 0x00, row);
+    }
+    if(data >=650 && data< 700){ // eight LEDs on
+        numberLED(0xFF, 0x00, row);
+    }
+    if(data >=700 && data< 750){ // nine LEDs on 
+        numberLED(0xFF, 0x01, row);
+    }
+    if(data >=750 && data< 800){ // 10 LEDs on
+        numberLED(0xFF, 0x03, row);
+    }
+    if(data >= 800 && data< 850){ // 11 LEDs on 
+        numberLED(0xFF, 0x07, row);
+    }
+    if(data >850 && data< 900){ // 12 LEDs on
+        numberLED(0xFF, 0x0F, row);
+    }
+    if(data >=900 && data< 950){ //13 LEDs on
+        //numberLED(0xFF, 0x3F, row);
+        numberLED(0xFF, 0x1f, row);
+    }
+    if(data >=950 && data< 1000){ //14 LEDs on
+        numberLED(0xFF, 0x3f, row);
+    }
+    if(data >=1050 && data< 1100){ // 15 LEDs on
+        numberLED(0xFF, 0x7F, row);
+    }
+    if(data >=1100){ // 15 LEDs on
+        numberLED(0xFF, 0xFF, row);
+    }
+}
