@@ -167,6 +167,20 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
                     count = 0;
                 }
         }
+        if (letter == 'b' | letter == 'u' | letter == 'f'){
+            count = count +1;
+                if (count == 3){
+                    printf("Number of samples in the buffer");
+                    count = 0;
+                }
+        }
+        if (letter == 'f' | letter == 'l' | letter == 'u'){
+            count = count +1;
+                if (count == 3){
+                    printf("Buffer emptied");
+                    count = 0;
+                }
+        }
     }
 
 
