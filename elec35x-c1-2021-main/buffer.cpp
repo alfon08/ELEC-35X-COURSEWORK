@@ -8,24 +8,24 @@
 
 
 int iotLight;
-float iotTemp;
-float iotPress;
+float iotTemp;              //these will be sent to the IOT
+float iotPress;                 
 char iotdate_time[32];
 
-Timer buzzT;
+Timer buzzT;                //timer for buzzer
 bool AckPress = false;
 DigitalOut redLED(TRAF_RED1_PIN);  // red led to hightlight buffer error
 DigitalOut greenLED(TRAF_GRN1_PIN); //  green light to highlight buffer is healthy
 microseconds SilenceT = 0s;
-extern Thread t4;
+extern Thread t4;           // IOT thread for usage
 Buzzer alarm;
 
 void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
     buffer* message = mail_box.try_alloc();
-        if (message == NULL) { //error handling if failed to allocate space in buffer
-            redLED = 1; // red light comes on
-            error("No space in buffer\n"); //passes  error command
-            greenLED = 0; // healthy light comes off
+        if (message == NULL) {                  //error handling if failed to allocate space in buffer
+            redLED = 1;                         // red light comes on
+            error("No space in buffer\n");      //passes  error command
+            greenLED = 0;                       // healthy light comes off
         return;             }
         int stringLength = strlen(dt);
         for(int i = 0; i <= (stringLength -1); i++){
@@ -41,27 +41,28 @@ void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
         iotTemp = T;
         iotPress = P;
         osStatus stat = mail_box.put(message);  //send message
-            if (stat != osOK) { //if message fails error is recorde
+            if (stat != osOK) { //if message fails error is recorded
                 redLED = 1; //red light comes on
                 error("buffering data failed\n"); //passes  error comman
                 greenLED = 0; // helathy light off
                 mail_box.free(message); // remove message from mail_box
             return;
-                    } else{
-        greenLED = 1; //healthy light on if buffer write successful}
+                    } 
+            else{
+                greenLED = 1; //healthy light on if buffer write successful}
 }
 }
 
-void buffer::checkvalues (int l, float T, float P){
-    ldralarm = l;
-    Tempalarm = T;
+void buffer::checkvalues (int l, float T, float P){                 //Take values as parameter to check
+    ldralarm = l;                                                   
+    Tempalarm = T;                                                  //assign internally for ease of comparing
     Pressalarm = P;
     SilenceT = buzzT.elapsed_time();
     if ((AckPress == false) | (SilenceT > 60s)){
-    if((ldralarm >= ldralarm_high | ldralarm <= ldralarm_low) ){
+    if((ldralarm >= ldralarm_high | ldralarm <= ldralarm_low) ){    //set high and low using or condition to encapsulate boundary
 
-        alarm.playTone("C", Buzzer::LOWER_OCTAVE);
-        mainQueue.call(printf,"Light Level Warning!!\n");
+        alarm.playTone("C", Buzzer::LOWER_OCTAVE);                  //play buzzer to notify threshold breached
+        mainQueue.call(printf,"Light Level Warning!!\n");           //message added to queue to print when pointer points to it
 
     }
 
@@ -75,14 +76,14 @@ void buffer::checkvalues (int l, float T, float P){
         alarm.playTone("C", Buzzer::LOWER_OCTAVE);
         mainQueue.call(printf,"Pressure Level Warning!!\n");
     }
-    buzzT.reset();
+    buzzT.reset();                                                  //reset buzzer so it doesns't ring continuously
 
     }
 }
 
 void BuzzStop(){
      alarm.rest();
-     AckPress = true;
+     AckPress = true;   
      buzzT.start();
      mainQueue.call(printf,"Alarm Silenced\n");
 }
