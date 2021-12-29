@@ -21,7 +21,7 @@ InterruptIn Bluebtn(USER_BUTTON);//used for printing out what is in the SD card
 InterruptIn btnA(BTN1_PIN);//used for printing out what is in the SD card
 Sampling ldr(AN_LDR_PIN);// constructor for setting up Sampling
 buffer mes(0, 0, 0.0, 0.0); // constructor for setting up the buffer
-
+matrix_bar start;
 Mail<buffer, 16> mail_box; //buffer holds 16 of type buffer
 int SDwriteFreq = 4; //writes to SD card afer x number of samples
 microseconds sampRate = 100ms; //sampling Rate
@@ -96,14 +96,25 @@ void iotazure(){
     }
 }
 
+void matrix_display(char y){
+    if(y == 'L'){
+        start.BarLight(ldr.dataAVG.ldrEngAVG, 6);
+        mainQueue.call(printf,"Matrix Display - Light\n");
+    }
+    if(y == 'T'){
+        start.BarTemp(ldr.dataAVG.TempAVG, 6);
+        mainQueue.call(printf,"Matrix Display - Temperature\n");
+    }
+    if(y == 'P'){
+        mainQueue.call(printf,"Matrix Display - Pressure\n");
+    }
+}
+
 
 int main() {
     
-
     if (!connect()) return -1; // obtain network connection
     if (!setTime()) return -1; // obtain time and update RTC
-        matrix_bar start;
-        start.BarLight(57000, 7);
         SDCardSetup(); // Sets up SD card
         btnA.rise(&Queue_Read); //ISR for blue button which reads SD card
         Bluebtn.rise(&BuzzStop);

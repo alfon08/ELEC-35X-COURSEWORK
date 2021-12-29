@@ -7,13 +7,14 @@
 #include <cstring>
 #include <string.h>
 #include "buffer.hpp"
+#include "matrix.hpp"
 
 //NetworkInterface* netIF;
 extern int iotLight;
 extern float iotTemp;
 extern float iotPress;
 extern char iotdate[15];
-//extern char Samptime_date[20];
+extern void matrix_display(char y);
 
 
 extern NetworkInterface *_defaultSystemNetwork;
@@ -137,24 +138,28 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
     printf("\r\nDevice Method called for device %s\r\n", device_id);
     printf("Device Method name:    %s\r\n", method_name);
     printf("Device Method payload: %.*s\r\n", (int)size, (const char*)payload);
-    
-    //If true plot light
-    if ( strncmp("true", (const char*)payload, size) == 0 ) {
-        printf("LED ON\n");
-        led1 = 1;
+    char RESPONSE_STRING[80];
 
+    int payloadsize = sizeof(payload);
+    for(int i = 0; i < payloadsize; i++){
+        const char letter = payload[i];
+        if (letter == 'L'){
+            matrix_display('L');
+            sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"Light Level Matrix activated\"}" );
+        }
+        if (letter == 'T'){
+            matrix_display('T');
+            sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"Temperature Level Matrix activated\"}" );
+        }
+        if (letter == 'P'){
+            matrix_display('P');
+            sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"Pressure Level Matrix activated\"}" );
+        }
 
-    } else {
-        //Else plot temperature
-        printf("LED OFF\n");
-        led1 = 0;
     }
 
-    int status = 200;
-    //char RESPONSE_STRING[] = "{ \"Response\": \"This is the response from the device\" }";
-    char RESPONSE_STRING[64];
-    //sprintf(RESPONSE_STRING, "{ \"Response\" : %d }", blueButton.read());
-
+     int status = 200;
+     
     printf("\r\nResponse status: %d\r\n", status);
     printf("Response payload: %s\r\n\r\n", RESPONSE_STRING);
 
@@ -235,11 +240,7 @@ void iothubrecord() {
             break;
         }
 
-
-
-        //sprintf(message, "{ \"SampTime\" : %s}", iotdate);
         sprintf(message, "{ \"LightLevel\" : %d, \"Temperature\" : %5.2f, \"Pressure\" : %5.2f, \"SampTime\" : %s}", iotLight, iotTemp, iotPress, iotdate);
-        printf("Light level: %d, Temperature: %f, Pressure: %f\n", iotLight, iotTemp, iotPress );
         //LogInfo("Sending: \"%s\"", message);
 
         message_handle = IoTHubMessage_CreateFromString(message);
@@ -256,7 +257,6 @@ void iothubrecord() {
             goto cleanup;
         }
 
-        //ThisThread::sleep_for(60s);
     }
 
     // If the user didn't manage to send a cloud-to-device message earlier,

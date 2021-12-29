@@ -1,6 +1,6 @@
 #include "matrix.hpp"
-
 #define SCAN_RATE_MS   50
+
 
 
 // Clear the LED matrix (code by Martin Simpson)
@@ -76,7 +76,7 @@ void matrix_bar::numberLED(int nledLHS, int nledRHS, int row){
 
 
 
-void matrix_bar::BarLight (int data, int row){
+void matrix_bar::BarLight (uint32_t data, int row){
     if(data == 0){ //0 or no data
         numberLED(0x00, 0X00, row);
     }

@@ -7,6 +7,7 @@
 #include <cstring>
 #include <string.h>
 #include "buffer.hpp"
+#include "matrix.hpp"
 
 //NetworkInterface* netIF;
 extern int iotLight;
@@ -132,6 +133,7 @@ static void on_message_sent(IOTHUB_CLIENT_CONFIRMATION_RESULT result, void* user
 // ****************************************************
 static int on_method_callback(const char* method_name, const unsigned char* payload, size_t size, unsigned char** response, size_t* response_size, void* userContextCallback)
 {
+    matrix_bar matrix;
     const char* device_id = (const char*)userContextCallback;
 
     printf("\r\nDevice Method called for device %s\r\n", device_id);
@@ -142,6 +144,7 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
     if ( strncmp("true", (const char*)payload, size) == 0 ) {
         printf("LED ON\n");
         led1 = 1;
+        matrix.plotTemp();
 
 
     } else {
