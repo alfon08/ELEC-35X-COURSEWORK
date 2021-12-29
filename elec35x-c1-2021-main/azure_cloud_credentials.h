@@ -14,7 +14,7 @@ namespace azure_cloud {
 
         // Use https://dpsgen.z8.web.core.windows.net/ to obtain YOUR connection string
         // This one will not work, but I guess you knew that ;)
-        const char iothub_connection_string[] = "Your string";
+        const char iothub_connection_string[] = "your string";
     }
 }
 #endif

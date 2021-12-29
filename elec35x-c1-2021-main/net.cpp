@@ -15,7 +15,7 @@ extern float iotTemp;
 extern float iotPress;
 extern char iotdate[15];
 extern void matrix_display(char y);
-
+extern char iotdate_time[];
 
 extern NetworkInterface *_defaultSystemNetwork;
 time_t timestamp ;
@@ -139,12 +139,15 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
     printf("Device Method name:    %s\r\n", method_name);
     printf("Device Method payload: %.*s\r\n", (int)size, (const char*)payload);
     char RESPONSE_STRING[80];
-
+    char *output = NULL;
+    int count = 0;
+    char b[] = "late";
     int payloadsize = sizeof(payload);
     for(int i = 0; i < payloadsize; i++){
         const char letter = payload[i];
         if (letter == 'L'){
             matrix_display('L');
+            printf("%d", payloadsize);
             sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"Light Level Matrix activated\"}" );
         }
         if (letter == 'T'){
@@ -154,9 +157,27 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
         if (letter == 'P'){
             matrix_display('P');
             sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"Pressure Level Matrix activated\"}" );
-        }
+        }  
 
+        
+        if (letter == 'l' | letter == 'a' | letter == 't'){
+            count = count +1;
+                if (count == 3){
+                    sprintf(RESPONSE_STRING, "{ \"LightLevel\" : %d, \"Temperature\" : %5.2f, \"Pressure\" : %5.2f,}", iotLight, iotTemp, iotPress);
+                    count = 0;
+                }
+        }
     }
+
+
+    
+
+    // output = strstr(a,b);
+    //     if(output != NULL){
+    //         printf("get latest");
+    //     }
+
+    // }
 
      int status = 200;
      
