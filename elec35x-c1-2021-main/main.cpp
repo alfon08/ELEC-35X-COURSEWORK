@@ -122,6 +122,7 @@ void CritError(){
     CErrorcount++;
 
     if (CErrorcount >=4) {
+        CriticalSectionLock::enable();  //lock so no interrupts can interrupt it as ticker is an interrupt
         printf ("critical error has occured. system will restart in 30 seconds");
         alarm.playTone("C", Buzzer::LOWER_OCTAVE);      //if this doesn't work, probs just need to be initilised here to extern it as its in other file
         redLed2=0;
@@ -129,6 +130,7 @@ void CritError(){
         Watchdog &watchdog = Watchdog::get_instance();
         watchdog.start(RESET_TIME);              //starts watchdog timer for 30 sec. whole system resets after time is over
         CIEbutton.waitforpress();                //block by waiting for press
+        CriticalSectionLock::disable();
         //sleep();
     }
 
