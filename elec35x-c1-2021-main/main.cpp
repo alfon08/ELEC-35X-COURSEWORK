@@ -16,7 +16,6 @@
 #include "sd.hpp"
 #include "net.hpp"
 #include "matrix.hpp"
-#include "Windows.h"
 
 InterruptIn Bluebtn(USER_BUTTON);           //used for printing out what is in the SD card
 InterruptIn btnA(BTN1_PIN);                 //used for printing out what is in the SD card
@@ -42,7 +41,8 @@ Thread t5(osPriorityNormal);                //critical error thread
 DigitalInOut redLed2 (TRAF_RED2_PIN);
 volatile int CErrorcount ;                  //critical error count
 const uint32_t RESET_TIME = 30000;          //30 sec countdown for watchdog
-
+InterruptIn CIEbutton (BTN2_PIN);
+Buzzer alarmm;
 
 microseconds tmrUpdate = 0ms;               //time to compare 
 EventQueue mainQueue;
@@ -52,6 +52,7 @@ extern void BuzzStop();
 void Flag_Set(){                            //Sets the flag to start sampling
      t1.flags_set(1);
                 }
+
 
 
 //Thread 1
@@ -103,6 +104,7 @@ void iotazure(){
 }
 
 void matrix_display(char y){
+    matrix_bar start;
     if(y == 'L'){
         start.BarLight(ldr.dataAVG.ldrEngAVG, 6);
         mainQueue.call(printf,"Matrix Display - Light\n");
@@ -115,21 +117,21 @@ void matrix_display(char y){
         mainQueue.call(printf,"Matrix Display - Pressure\n");}}
 
 // * thread 5 *
-void CritError(){
-    this thread::flags_wait_any(2); //block until this flag is set
-    this thread_sleep_for(50ms);    //switch bounce to stabilise
-    this thread::flags_clear(2);    //clear flag incase there were any due to switch bounce
+void CritError(){   
+    ThisThread::flags_wait_any(2); //block until this flag is set
+    ThisThread::sleep_for(50ms);    //switch bounce to stabilise
+    ThisThread::flags_clear(2);    //clear flag incase there were any due to switch bounce
     CErrorcount++;
 
     if (CErrorcount >=4) {
         CriticalSectionLock::enable();  //lock so no interrupts can interrupt it as ticker is an interrupt
         printf ("critical error has occured. system will restart in 30 seconds");
-        alarm.playTone("C", Buzzer::LOWER_OCTAVE);      //if this doesn't work, probs just need to be initilised here to extern it as its in other file
+        alarmm.playTone("C", Buzzer::LOWER_OCTAVE);      //if this doesn't work, probs just need to be initilised here to extern it as its in other file
         redLed2=0;
         //CErrorcount=0;
         Watchdog &watchdog = Watchdog::get_instance();
         watchdog.start(RESET_TIME);              //starts watchdog timer for 30 sec. whole system resets after time is over
-        CIEbutton.waitforpress();                //block by waiting for press
+        //CIEbutton.waitforpress();                //block by waiting for press
         CriticalSectionLock::disable();
         //sleep();
     }
@@ -137,8 +139,8 @@ void CritError(){
 }
 //**
 void critErrbtnISR (){          //interrupt service routine for the switch at PG_1
-    CIEbutton.rise(NULL)
-    t5.flag_set(2);             //trying to keep the interrupt short as possible and 
+    CIEbutton.rise(NULL);
+    t5.flags_set(2);             //trying to keep the interrupt short as possible and 
                                 //let function do the work
 }
 
@@ -146,7 +148,7 @@ void critErrbtnISR (){          //interrupt service routine for the switch at PG
 int main() {
     
     /*ISR button */
-        CIEbutton.rise(critErrbtnISR)           //button A AT PG0
+        CIEbutton.rise(critErrbtnISR);           //button A AT PG0
         //set traf light 2
         redLed2.output();
         redLed2.mode(PinMode::OpenDrainNoPull);
@@ -164,7 +166,7 @@ int main() {
         t2.start(bufferSample); // buffer thread start
         t3.start(SDCardWrite);  // sd card thread start
         t4.start(iotazure);     // iothub thread start
-        t5.start(CritError)     // reset thread 
+        t5.start(CritError);     // reset thread 
         Samptick.attach(&Flag_Set, sampRate);   // ISR for control of sample rate
         updatetmr.start();      //timer for buffer write
         
