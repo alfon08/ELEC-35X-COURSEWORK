@@ -10,9 +10,9 @@ class buffer {
         int ldralarm;
         float Tempalarm;
         float Pressalarm;
-        int ldralarm_high = 50000;
-        int ldralarm_low = 30000;
-        float tempalarm_low = 15.00;
+        int ldralarm_high = 50000;              //internal constraint of values defined for safe usage
+        int ldralarm_low = 30000;               //outside these thresholds are deemed dangerous
+        float tempalarm_low = 15.00;            //changing these values will change threshold boundary
         float tempalarm_high = 22.00;
         float pressalarm_low = 500.00;
         float pressalarm_high = 1500.00;
@@ -44,5 +44,5 @@ class buffer {
 
 
 extern Mail<buffer, 16> mail_box; // brings in mailbox which can be seen at main
-extern EventQueue mainQueue;
+extern EventQueue mainQueue;      //queues onto main queue for sequencial order
 #endif
