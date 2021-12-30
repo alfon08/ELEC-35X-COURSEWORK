@@ -25,7 +25,7 @@ buffer mes(0, 0, 0.0, 0.0);                 // constructor for setting up the bu
 Mail<buffer, 16> mail_box;                  //buffer holds 16 of type buffer
 int SDwriteFreq = 4;                        //writes to SD card afer x number of samples
 microseconds sampRate = 100ms;              //sampling Rate
-
+int numberSamples = 0;
 //Timers
 Ticker Samptick;                            //ISR for triggering sampling
 Timer updatetmr;                            //Timer for triggering update 
@@ -47,6 +47,7 @@ Buzzer alarmm;
 microseconds tmrUpdate = 0ms;               //time to compare 
 EventQueue mainQueue;
 extern void BuzzStop();
+
 
 
 void Flag_Set(){                            //Sets the flag to start sampling
@@ -80,8 +81,8 @@ void bufferSample(){
                 ldr.UpdateSample();
                 //mainQueue.call(printf, "data recorded in buffer at %s", ldr.Samptime_date);
                 //Record average samples in buffer
-                mes.SpaceAllocate(ldr.Samptime_date, ldr.dataAVG.ldrEngAVG, ldr.dataAVG. TempAVG, ldr.dataAVG.PressAVG);
-                mes.checkvalues(ldr.dataAVG.ldrEngAVG, ldr.dataAVG. TempAVG, ldr.dataAVG.PressAVG);
+                mes.SpaceAllocate(ldr.Samptime_date, ldr.dataAVG.ldrEngAVG, ldr.dataAVG. TempAVG, ldr.dataAVG.PressAVG);//Allocate date, ldr, temp and pres in the buffer
+                mes.checkvalues(ldr.dataAVG.ldrEngAVG, ldr.dataAVG. TempAVG, ldr.dataAVG.PressAVG); //Check if they are above or below limits->WARNING
                 t4.flags_set(1);            // set flag for updating data on IOTHub
                 i = ++i;                    // increement counter
                     if(i == (SDwriteFreq)){ // if counter is equal to specified total stored samples write to sd
@@ -98,7 +99,7 @@ void bufferSample(){
 //Thread 4
 void iotazure(){ 
     while(true){
-                    //iothubrecord(); // iothub function
+                    iothubrecord(); // iothub function
 
     }
 }
@@ -157,7 +158,7 @@ int main() {
 
     if (!connect()) return -1; // obtain network connection
     if (!setTime()) return -1; // obtain time and update RTC
-        //matrix_bar start;
+        matrix_bar start;
         //start.BarLight(4093);
         SDCardSetup();          // Sets up SD card
         btnA.rise(&Queue_Read); //ISR for blue button which reads SD card

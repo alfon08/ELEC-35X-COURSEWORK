@@ -8,7 +8,7 @@
 #include <string.h>
 #include "buffer.hpp"
 #include "matrix.hpp"
-
+#include "sd.hpp"
 //NetworkInterface* netIF;
 extern int iotLight;
 extern float iotTemp;
@@ -16,6 +16,7 @@ extern float iotPress;
 extern char iotdate[15];
 extern void matrix_display(char y);
 extern char iotdate_time[];
+extern int numberSamples;
 
 extern NetworkInterface *_defaultSystemNetwork;
 time_t timestamp ;
@@ -135,12 +136,15 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
 {
     const char* device_id = (const char*)userContextCallback;
 
+
     printf("\r\nDevice Method called for device %s\r\n", device_id);
     printf("Device Method name:    %s\r\n", method_name);
     printf("Device Method payload: %.*s\r\n", (int)size, (const char*)payload);
     char RESPONSE_STRING[80];
     char *output = NULL;
     int count = 0;
+    int bufcount = 0;
+    int flucount = 0;
     char b[] = "late";
     int payloadsize = sizeof(payload);
     for(int i = 0; i < payloadsize; i++){
@@ -168,17 +172,20 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
                 }
         }
         if (letter == 'b' | letter == 'u' | letter == 'f'){
-            count = count +1;
-                if (count == 3){
-                    printf("Number of samples in the buffer");
-                    count = 0;
+            bufcount = bufcount +1;
+                if (bufcount == 3){
+                    sprintf(RESPONSE_STRING, "{ \"SamplesBuffer\" : %i,}", numberSamples);
+                    printf("Number of samples in the buffer = %i", numberSamples);
+                    bufcount = 0;
                 }
         }
         if (letter == 'f' | letter == 'l' | letter == 'u'){
-            count = count +1;
-                if (count == 3){
+            flucount = flucount +1;
+                if (flucount == 3){
+                    
+                    SDCardWrite(); //Write the values from the buzzer to the SD card
                     printf("Buffer emptied");
-                    count = 0;
+                    flucount = 0;
                 }
         }
     }

@@ -11,7 +11,6 @@ int iotLight;
 float iotTemp;              //these will be sent to the IOT
 float iotPress;                 
 char iotdate_time[32];
-
 Timer buzzT;                //timer for buzzer
 bool AckPress = false;
 DigitalOut redLED(TRAF_RED1_PIN);  // red led to hightlight buffer error
@@ -19,6 +18,7 @@ DigitalOut greenLED(TRAF_GRN1_PIN); //  green light to highlight buffer is healt
 microseconds SilenceT = 0s;
 extern Thread t4;           // IOT thread for usage
 Buzzer alarm;
+extern int numberSamples;
 
 void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
     buffer* message = mail_box.try_alloc();
@@ -34,9 +34,13 @@ void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
         }
         date_time[stringLength] = '\0';
         iotdate_time[stringLength] = '\0';
+        numberSamples++; //+1 sample
         message-> ldr = l; //write passed values to message type buffer*
+        numberSamples++; //+1 sample
         message-> Temp = T;
+        numberSamples++; //+1 sample
         message-> Press = P;
+        numberSamples++; //+1 sample
         iotLight = l;
         iotTemp = T;
         iotPress = P;

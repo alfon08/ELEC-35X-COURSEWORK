@@ -23,6 +23,7 @@ class buffer {
         float Temp; // float for temp buffered sample
         float Press; // float for press buffered sample
         char date_time[32]; // string for date and time
+        int samplesInBuffer = 0;
 
         void SpaceAllocate(char dt[32], int l, float T, float P); // function to write to buffer
         void checkvalues (int l, float T, float P);

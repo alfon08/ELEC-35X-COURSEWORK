@@ -1,8 +1,11 @@
 #include "sd.hpp"
 #include "buffer.hpp"
+#include "matrix.hpp"
+
 
 SDBlockDevice sdc(PB_5, PB_4, PB_3, PF_3);
 
+extern int numberSamples;
 
 void SDCardSetup(){
     //for(int z = 0;z >2;z++) { //loop to init sd card sometimes doesnt always do it first time??
@@ -25,6 +28,7 @@ void SDCardSetup(){
 
 //Thread 3
 void SDCardWrite(){
+    
     FATFileSystem fs("sd", &sdc);
     FILE *fp = fopen("/sd/test.txt","a");
     int p;
@@ -41,11 +45,12 @@ void SDCardWrite(){
     } else {
         ThisThread::flags_wait_any(1); 
         ThisThread::flags_clear(1);
-        FILE *fp = fopen("/sd/test.txt","a"); 
+        FILE *fp = fopen("/sd/test.txt","a"); //Open file to  write
         for(p = 0; p<(SDwriteFreq); p++){
         buffer* payload;
         payload = mail_box.try_get(); 
         buffer msg(payload->date_time, payload->ldr, payload->Temp, payload->Press);
+        numberSamples = numberSamples - 4; //Send 4 values from the buffer to the SD, -4 values in the buffer
         mail_box.free(payload);
         fprintf(fp, "%s", msg.date_time); //to be updated wit
         fprintf(fp, "ldr value: %d\t", msg.ldr); //to be updated wit
