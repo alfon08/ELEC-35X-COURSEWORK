@@ -1,6 +1,7 @@
 #include "sd.hpp"
 #include "buffer.hpp"
 #include "matrix.hpp"
+#include <cstdio>
 
 
 SDBlockDevice sdc(PB_5, PB_4, PB_3, PF_3);
@@ -74,6 +75,8 @@ void SDCardRead(){
              fclose(fp);
              mainQueue.call(printf, "sd card Read complete\n");
 }
+
+
 
 void Queue_Read(){
      mainQueue.call(&SDCardRead);

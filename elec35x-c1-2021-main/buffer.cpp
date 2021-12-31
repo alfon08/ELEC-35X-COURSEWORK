@@ -19,6 +19,10 @@ microseconds SilenceT = 0s;
 extern Thread t4;           // IOT thread for usage
 Buzzer alarm;
 extern int numberSamples;
+int Lightarray[8] = {0};
+float Temparray[8] = {0};
+float Pressarray[8] {0};
+int c =0;
 
 void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
     buffer* message = mail_box.try_alloc();
@@ -40,6 +44,15 @@ void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
         iotLight = l;
         iotTemp = T;
         iotPress = P;
+        Lightarray[c] = l;
+        Temparray[c] = T; 
+        Pressarray[c] = P; 
+        if(c <8){
+            c++;
+        }
+        else{
+            c = 0;
+        }
         osStatus stat = mail_box.put(message);  //send message
             if (stat != osOK) { //if message fails error is recorded
                 redLED = 1; //red light comes on
@@ -50,8 +63,11 @@ void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
                     } 
             else{
                 greenLED = 1; //healthy light on if buffer write successful}
+
+        }
+
 }
-}
+
 
 void buffer::checkvalues (int l, float T, float P){                 //Take values as parameter to check
     ldralarm = l;                                                   

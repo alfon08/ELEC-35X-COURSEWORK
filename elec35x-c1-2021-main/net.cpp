@@ -14,9 +14,10 @@ extern int iotLight;
 extern float iotTemp;
 extern float iotPress;
 extern char iotdate[15];
-extern void matrix_display(char y);
+extern char y;
 extern char iotdate_time[];
 extern int numberSamples;
+extern void Flag_Set2();
 
 extern NetworkInterface *_defaultSystemNetwork;
 time_t timestamp ;
@@ -146,61 +147,48 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
     int count = 0;
     int bufcount = 0;
     int flucount = 0;
-    char b[] = "late";
+
     int payloadsize = sizeof(payload);
     for(int i = 0; i < payloadsize; i++){
         const char letter = payload[i];
         if (letter == 'L'){
-            matrix_display('L');
+            y = 'L';
             printf("%d", payloadsize);
             sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"Light Level Matrix activated\"}" );
         }
         if (letter == 'T'){
-            matrix_display('T');
+            y = 'T';
             sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"Temperature Level Matrix activated\"}" );
         }
         if (letter == 'P'){
-            matrix_display('P');
+            y = 'P';
             sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"Pressure Level Matrix activated\"}" );
         }  
 
-        
         if (letter == 'l' | letter == 'a' | letter == 't'){
             count = count +1;
                 if (count == 3){
-                    sprintf(RESPONSE_STRING, "{ \"LightLevel\" : %d, \"Temperature\" : %5.2f, \"Pressure\" : %5.2f,}", iotLight, iotTemp, iotPress);
-                    count = 0;
+                    sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"Light %d, Temp %5.2f, Press %5.2f\"}", iotLight, iotTemp, iotPress);
                 }
         }
-        else if (letter == 'b' | letter == 'u' | letter == 'f'){
+        if (letter == 'b' | letter == 'u' | letter == 'f'){
             bufcount = bufcount +1;
                 if (bufcount == 3){
-                    sprintf(RESPONSE_STRING, "{ \"SamplesBuffer\" : %i,}", numberSamples);
-                    printf("Number of samples in the buffer = %i", numberSamples);
-                    bufcount = 0;
+                    sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"SamplesBuffer %d \"}", numberSamples);
+                    mainQueue.call(printf,"Number of samples in the buffer = %i", numberSamples);
                 }
         }
-        else if (letter == 'e' | letter == 'm' | letter == 'p'){
+        if (letter == 'f' | letter == 'l' | letter == 'u'){
             flucount = flucount +1;
                 if (flucount == 3){
-                    
-                    printf("Buffer emptied");
-                    SDCardWrite(); //Write the values from the buzzer to the SD card
+                    sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"Buffer emptied\"}" );
+                    mainQueue.call(printf,"Buffer emptied\n");
+                    Flag_Set2();
                     numberSamples = 0; //Write to the SD card empties the buffer
-                    flucount = 0;
+
                 }
         }
     }
-
-
-    
-
-    // output = strstr(a,b);
-    //     if(output != NULL){
-    //         printf("get latest");
-    //     }
-
-    // }
 
      int status = 200;
      

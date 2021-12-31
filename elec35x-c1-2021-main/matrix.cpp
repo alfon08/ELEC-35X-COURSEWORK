@@ -41,7 +41,7 @@ void matrix_bar::numberLED(int nledLHS, int nledRHS, int row){
             matrix_spi_cs=1;           //low to high will effectivelly LATCH the Shift register to output
 };
 
-
+int f = 0x00 - 0x04;
 
 void matrix_bar::BarLight (int data, int row){
     if(data == 0){ //0 or no data
