@@ -5,7 +5,6 @@
 
 SDBlockDevice sdc(PB_5, PB_4, PB_3, PF_3);
 
-extern int numberSamples;
 
 void SDCardSetup(){
     //for(int z = 0;z >2;z++) { //loop to init sd card sometimes doesnt always do it first time??
@@ -50,7 +49,6 @@ void SDCardWrite(){
         buffer* payload;
         payload = mail_box.try_get(); 
         buffer msg(payload->date_time, payload->ldr, payload->Temp, payload->Press);
-        numberSamples = numberSamples - 4; //Send 4 values from the buffer to the SD, -4 values in the buffer
         mail_box.free(payload);
         fprintf(fp, "%s", msg.date_time); //to be updated wit
         fprintf(fp, "ldr value: %d\t", msg.ldr); //to be updated wit

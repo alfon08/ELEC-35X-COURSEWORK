@@ -23,7 +23,7 @@ Sampling ldr(AN_LDR_PIN);                   // constructor for setting up Sampli
 buffer mes(0, 0, 0.0, 0.0);                 // constructor for setting up the buffer
 
 Mail<buffer, 16> mail_box;                  //buffer holds 16 of type buffer
-int SDwriteFreq = 4;                        //writes to SD card afer x number of samples
+int SDwriteFreq = 16;                        //writes to SD card afer x number of samples
 microseconds sampRate = 100ms;              //sampling Rate
 int numberSamples = 0;
 //Timers
@@ -84,12 +84,15 @@ void bufferSample(){
                 mes.SpaceAllocate(ldr.Samptime_date, ldr.dataAVG.ldrEngAVG, ldr.dataAVG. TempAVG, ldr.dataAVG.PressAVG);//Allocate date, ldr, temp and pres in the buffer
                 mes.checkvalues(ldr.dataAVG.ldrEngAVG, ldr.dataAVG. TempAVG, ldr.dataAVG.PressAVG); //Check if they are above or below limits->WARNING
                 t4.flags_set(1);            // set flag for updating data on IOTHub
+                
                 i = ++i;                    // increement counter
+                numberSamples++;
                     if(i == (SDwriteFreq)){ // if counter is equal to specified total stored samples write to sd
                         bool empt = mail_box.empty(); //blocks if buffer is empty
                             if(!empt){      // if not empty
                                 t3.flags_set(1); //send signal to SD card thread
                                 i = 0;      // reset counter integer
+                                numberSamples = 0;
                                     }
                                           }
                      }                

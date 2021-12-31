@@ -132,6 +132,7 @@ static void on_message_sent(IOTHUB_CLIENT_CONFIRMATION_RESULT result, void* user
 // ****************************************************
 // * COMMAND HANDLER (sends a response back to Azure) *
 // ****************************************************
+
 static int on_method_callback(const char* method_name, const unsigned char* payload, size_t size, unsigned char** response, size_t* response_size, void* userContextCallback)
 {
     const char* device_id = (const char*)userContextCallback;
@@ -171,7 +172,7 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
                     count = 0;
                 }
         }
-        if (letter == 'b' | letter == 'u' | letter == 'f'){
+        else if (letter == 'b' | letter == 'u' | letter == 'f'){
             bufcount = bufcount +1;
                 if (bufcount == 3){
                     sprintf(RESPONSE_STRING, "{ \"SamplesBuffer\" : %i,}", numberSamples);
@@ -179,12 +180,13 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
                     bufcount = 0;
                 }
         }
-        if (letter == 'f' | letter == 'l' | letter == 'u'){
+        else if (letter == 'e' | letter == 'm' | letter == 'p'){
             flucount = flucount +1;
                 if (flucount == 3){
                     
-                    SDCardWrite(); //Write the values from the buzzer to the SD card
                     printf("Buffer emptied");
+                    SDCardWrite(); //Write the values from the buzzer to the SD card
+                    numberSamples = 0; //Write to the SD card empties the buffer
                     flucount = 0;
                 }
         }
