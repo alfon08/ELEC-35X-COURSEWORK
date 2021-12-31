@@ -43,7 +43,7 @@ DigitalInOut redLed2 (TRAF_RED2_PIN);
 volatile int CErrorcount ;                  //critical error count
 const uint32_t RESET_TIME = 30000;          //30 sec countdown for watchdog
 InterruptIn CIEbutton (BTN2_PIN);
-Buzzer alarmm;
+Buzzer critAlarm;
 extern char Lightarray[8];
 extern char Temparray[8];
 extern char Pressarray[8];
@@ -54,11 +54,9 @@ extern void BuzzStop();
 
 
 
-void Flag_Set(){                            //Sets the flag to start sampling
+void Flag_Set(){                            //Sets the flag to start sampling via ticker
      t1.flags_set(1);}
 
-void Flag_Set2(){                            //Sets the flag to start sampling
-     t3.flags_set(1);}
 
 //Thread 1
 void GetSample(){
@@ -141,8 +139,9 @@ void CritError(){
 
     if (CErrorcount >=4) {
         CriticalSectionLock::enable();  //lock so no interrupts can interrupt it as ticker is an interrupt
+        //maybe a mutex lock
         printf ("critical error has occured. system will restart in 30 seconds");
-        alarmm.playTone("C", Buzzer::LOWER_OCTAVE);      //if this doesn't work, probs just need to be initilised here to extern it as its in other file
+        alarmm.playTone("A", Buzzer::HIGHER_OCTAVE);      //if this doesn't work, probs just need to be initilised here to extern it as its in other file
         redLed2=0;
         //CErrorcount=0;
         Watchdog &watchdog = Watchdog::get_instance();
@@ -169,7 +168,7 @@ int main() {
         //set traf light 2
         redLed2.output();
         redLed2.mode(PinMode::OpenDrainNoPull);
-        redLed2 = 1;             //as open drain, set to 0 keep off
+        redLed2 = 1;             //as open drain, set to 1 keep off
 
 
     if (!connect()) return -1; // obtain network connection
