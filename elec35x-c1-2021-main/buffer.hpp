@@ -28,6 +28,7 @@ class buffer {
         void SpaceAllocate(char dt[32], int l, float T, float P); // function to write to buffer
         void checkvalues (int l, float T, float P);
         void BuzzStop();
+        void updatearrays(int l, float T, float P);
   
     //Constructor
          buffer(char dt[32], int l, float t, float p) {

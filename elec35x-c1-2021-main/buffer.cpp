@@ -44,15 +44,6 @@ void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
         iotLight = l;
         iotTemp = T;
         iotPress = P;
-        Lightarray[c] = l;
-        Temparray[c] = T; 
-        Pressarray[c] = P; 
-        if(c <8){
-            c++;
-        }
-        else{
-            c = 0;
-        }
         osStatus stat = mail_box.put(message);  //send message
             if (stat != osOK) { //if message fails error is recorded
                 redLED = 1; //red light comes on
@@ -97,6 +88,16 @@ void buffer::checkvalues (int l, float T, float P){                 //Take value
 
     }
 }
+void buffer::updatearrays(int l, float T, float P){
+    for(int i = 7; i >0; i --){
+    Lightarray[i] = Lightarray[i -1];    
+    Temparray[i] = Temparray[i -1];
+    Pressarray[i] = Pressarray[i -1];}
+    Lightarray[0] = l;
+    Temparray[0] = T;
+    Pressarray[0] = P;
+}
+
 
 void BuzzStop(){
      alarm.rest();
