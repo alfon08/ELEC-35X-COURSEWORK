@@ -21,7 +21,7 @@ InterruptIn Bluebtn(USER_BUTTON);           //used for printing out what is in t
 InterruptIn btnA(BTN1_PIN);                 //used for printing out what is in the SD card
 Sampling ldr(AN_LDR_PIN);                   // constructor for setting up Sampling
 buffer mes(0, 0, 0.0, 0.0);                 // constructor for setting up the buffer
-LCD_16X2_DISPLAY disp;
+
 Mail<buffer, 16> mail_box;                  //buffer holds 16 of type buffer
 int SDwriteFreq = 16;                        //writes to SD card afer x number of samples
 microseconds sampRate = 100ms;              //sampling Rate
@@ -43,11 +43,10 @@ DigitalInOut redLed2 (TRAF_RED2_PIN);
 volatile int CErrorcount ;                  //critical error count
 const uint32_t RESET_TIME = 30000;          //30 sec countdown for watchdog
 InterruptIn CIEbutton (BTN2_PIN);
-Buzzer alarmm;
-extern int Lightarray[8];
-extern float Temparray[8];
-extern float Pressarray[8];
-extern int iotLight;
+Buzzer critAlarm;
+extern char Lightarray[8];
+extern char Temparray[8];
+extern char Pressarray[8];
 char y = 'L'; //matrix array set to light by default
 microseconds tmrUpdate = 0ms;               //time to compare 
 EventQueue mainQueue;
@@ -55,11 +54,9 @@ extern void BuzzStop();
 
 
 
-void Flag_Set(){                            //Sets the flag to start sampling
+void Flag_Set(){                            //Sets the flag to start sampling via ticker
      t1.flags_set(1);}
 
-void Flag_Set2(){                            //Sets the flag to start sampling
-     t3.flags_set(1);}
 
 //Thread 1
 void GetSample(){
@@ -88,7 +85,6 @@ void bufferSample(){
                 //Record average samples in buffer
                 mes.SpaceAllocate(ldr.Samptime_date, ldr.dataAVG.ldrEngAVG, ldr.dataAVG. TempAVG, ldr.dataAVG.PressAVG);//Allocate date, ldr, temp and pres in the buffer
                 mes.checkvalues(ldr.dataAVG.ldrEngAVG, ldr.dataAVG. TempAVG, ldr.dataAVG.PressAVG); //Check if they are above or below limits->WARNING
-                mes.updatearrays(ldr.dataAVG.ldrEngAVG, ldr.dataAVG. TempAVG, ldr.dataAVG.PressAVG);
                 t4.flags_set(1);            // set flag for updating data on IOTHub
                 
                 i = ++i;                    // increement counter
@@ -117,22 +113,21 @@ void iotazure(){
 void matrix_display() {
     matrix_bar start;
     while(true){
-    disp.cls();
-    disp.locate(1, 0);
-    start.clearMatrix();
-    disp.printf("Display=%c\n",y);
-        while(y == 'L'){
-            for(int i= 0; i<7; i++){
-            start.BarLight(Lightarray[i], i);
-        }}
-        while(y == 'T'){
-            for(int i= 0; i<7; i++){
-            start.BarTemp(Temparray[i], i);
-            }}
-        while(y == 'P'){
-            for(int i= 0; i<7; i++){
-            start.BarPres(Pressarray[i], i);
-        }}}
+    if(y == 'L'){
+        for(int i= 0; i<7; i++){
+        start.BarLight(Lightarray[i], i);
+        ThisThread::sleep_for(5000ms);
+        }
+    }
+    if(y == 'T'){
+        for(int i= 0; i<7; i++){
+        start.BarLight(Temparray[i], i);
+        ThisThread::sleep_for(5000ms);}}
+    }
+    if(y == 'P'){
+        for(int i= 0; i<7; i++){
+        start.BarLight(Pressarray[i], i);
+        ThisThread::sleep_for(5000ms);}}
 }
 
 // * thread 5 *
@@ -140,15 +135,19 @@ void CritError(){
     ThisThread::flags_wait_any(2); //block until this flag is set
     ThisThread::sleep_for(50ms);    //switch bounce to stabilise
     ThisThread::flags_clear(2);    //clear flag incase there were any due to switch bounce
+    CriticalSectionLock::enable();
     CErrorcount++;
+    CriticalSectionLock::disable();
+
 
     if (CErrorcount >=4) {
         CriticalSectionLock::enable();  //lock so no interrupts can interrupt it as ticker is an interrupt
+        //maybe a mutex lock    -   incase the other threads get calledx    
         printf ("critical error has occured. system will restart in 30 seconds");
-        alarmm.playTone("C", Buzzer::LOWER_OCTAVE);      //if this doesn't work, probs just need to be initilised here to extern it as its in other file
+        alarmm.playTone("A", Buzzer::HIGHER_OCTAVE);      //if this doesn't work, probs just need to be initilised here to extern it as its in other file
         redLed2=0;
         //CErrorcount=0;
-        Watchdog &watchdog = Watchdog::get_instance();
+        Watchdog &watchdog = Watchdog::get_instance();  //gets instance of time referenced for the wtachdog
         watchdog.start(RESET_TIME);              //starts watchdog timer for 30 sec. whole system resets after time is over
         //CIEbutton.waitforpress();                //block by waiting for press
         CriticalSectionLock::disable();
@@ -172,11 +171,13 @@ int main() {
         //set traf light 2
         redLed2.output();
         redLed2.mode(PinMode::OpenDrainNoPull);
-        redLed2 = 1;             //as open drain, set to 0 keep off
+        redLed2 = 1;             //as open drain, set to 1 keep off
+
 
     if (!connect()) return -1; // obtain network connection
     if (!setTime()) return -1; // obtain time and update RTC
         matrix_bar start;
+        //start.BarLight(4093);
         SDCardSetup();          // Sets up SD card
         btnA.rise(&Queue_Read); //ISR for blue button which reads SD card
         Bluebtn.rise(&BuzzStop);
