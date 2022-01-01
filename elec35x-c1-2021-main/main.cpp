@@ -153,9 +153,12 @@ void CritError(){
         //CErrorcount=0;
         Watchdog &watchdog = Watchdog::get_instance();  //gets instance of time referenced for the wtachdog
         watchdog.start(RESET_TIME);                     //starts watchdog timer for 30 sec. whole system resets after time is over
+        //or
+        //wait_us(30000);
+        //system_reset();
         //CIEbutton.waitforpress();                     //block by waiting for press
         CriticalSectionLock::disable();
-        //sleep();
+        
     }
 
 }
