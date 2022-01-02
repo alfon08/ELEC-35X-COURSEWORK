@@ -173,7 +173,7 @@ void critErrbtnISR (){          //interrupt service routine for the switch at PG
 int main() {
     
     /*ISR button */
-        CIEbutton.rise(critErrbtnISR);           //button A AT PG0
+        CIEbutton.rise(&critErrbtnISR);           //button A AT PG0
         //set traf light 2
         redLed2.output();
         redLed2.mode(PinMode::OpenDrainNoPull);
