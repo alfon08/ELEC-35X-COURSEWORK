@@ -61,6 +61,10 @@ Thread t6(osPriorityNormal);                 //matrix thread
 void Flag_Set(){                            //Sets the flag to start sampling via ticker
      t1.flags_set(1);}
 
+void Flag_Set2(){                            //Sets the flag to start sampling via ticker
+     t3.flags_set(1);}
+
+ 
 
 //Thread 1
 void GetSample(){
