@@ -117,19 +117,19 @@ void iotazure(){
 void matrix_display() {
     matrix_bar start;
     while(true){
+    start.clearMatrix();
     disp.cls();
     disp.locate(1, 0);
-    start.clearMatrix();
     disp.printf("Display=%c\n",y);
-        while(y == 'L'){
+        if(y == 'L'){
             for(int i= 0; i<7; i++){
             start.BarLight(Lightarray[i], i);
         }}
-        while(y == 'T'){
+        if(y == 'T'){
             for(int i= 0; i<7; i++){
             start.BarTemp(Temparray[i], i);
             }}
-        while(y == 'P'){
+        if(y == 'P'){
             for(int i= 0; i<7; i++){
             start.BarPres(Pressarray[i], i);
         }}}
