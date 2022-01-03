@@ -5,6 +5,7 @@
 #include "azure_c_shared_utility/xlogging.h"
 #include <chrono>
 #include <cstring>
+#include <sstream>
 #include <string.h>
 #include "buffer.hpp"
 #include "matrix.hpp"
@@ -149,6 +150,8 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
     int flucount = 0;
 
     int payloadsize = sizeof(payload);
+
+    if ((method_name = "Plot")){
     for(int i = 0; i < payloadsize; i++){
         const char letter = payload[i];
         if (letter == 'L'){
@@ -188,6 +191,12 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
 
                 }
         }
+    } 
+    }
+    if ((method_name = "HighLDRValue")){
+
+
+        printf("New LDR limit: %i", (int)payload);
     }
 
      int status = 200;
