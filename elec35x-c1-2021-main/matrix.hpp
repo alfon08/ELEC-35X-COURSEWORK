@@ -17,8 +17,8 @@ int samplesInBuffer = 0;
 void clearMatrix(void);
 void matrix_scan(void);
 void BarLight (int data, int row);
-void BarTemp (float data, int row);
-void BarPres (float data, int row);
+void BarTemp (int data, int row);
+void BarPres (int data, int row);
 
 matrix_bar() : matrix_spi(PC_12, PC_11, PC_10), matrix_spi_cs(PB_6), matrix_spi_oe(PB_12){
     //matrix_scan();

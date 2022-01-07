@@ -5,9 +5,9 @@
 #include "azure_c_shared_utility/xlogging.h"
 #include <chrono>
 #include <cstring>
+#include <sstream>
 #include <string.h>
-#include <string>
-
+#include "buffer.hpp"
 #include "matrix.hpp"
 #include "sd.hpp"
 //NetworkInterface* netIF;
@@ -19,9 +19,7 @@ extern char y;
 extern char iotdate_time[];
 extern int numberSamples;
 extern void Flag_Set2();
-buffer set(0, 0, 0.0, 0.0);
-bool LHAlarmset = false;
-bool LLAlarmset = false;
+
 extern NetworkInterface *_defaultSystemNetwork;
 time_t timestamp ;
 extern Sampling ldr;
@@ -151,11 +149,14 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
     int bufcount = 0;
     int flucount = 0;
 
-    if((method_name = "Plot")){
-    for(int i = 0; i < size; i++){
-         char letter = payload[i];
+    int payloadsize = sizeof(payload);
+
+    if ((method_name = "Plot")){
+    for(int i = 0; i < payloadsize; i++){
+        const char letter = payload[i];
         if (letter == 'L'){
             y = 'L';
+            printf("%d", payloadsize);
             sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"Light Level Matrix activated\"}" );
         }
         if (letter == 'T'){
@@ -167,23 +168,22 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
             sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"Pressure Level Matrix activated\"}" );
         }  
 
-        //if (letter == 'l' | letter == 'a' | letter == 't'| letter == 'e'| letter == 's'){
-        if (letter == 'l' | letter == 'a' | letter == 't'| letter == 'e'| letter == 's'){
+        if (letter == 'l' | letter == 'a' | letter == 't'){
             count = count +1;
-                if (count == 6){
+                if (count == 3){
                     sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"Light %d, Temp %5.2f, Press %5.2f\"}", iotLight, iotTemp, iotPress);
                 }
         }
-        if (letter == 'b' | letter == 'u' | letter == 'f'| letter == 'e'| letter == 'r'){
+        if (letter == 'b' | letter == 'u' | letter == 'f'){
             bufcount = bufcount +1;
-                if (bufcount == 6){
+                if (bufcount == 3){
                     sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"SamplesBuffer %d \"}", numberSamples);
                     mainQueue.call(printf,"Number of samples in the buffer = %i", numberSamples);
                 }
         }
-        if (letter == 'f' | letter == 'l' | letter == 'u' | letter == 's' | letter == 'h'){
+        if (letter == 'f' | letter == 'l' | letter == 'u'){
             flucount = flucount +1;
-                if (flucount == 5){
+                if (flucount == 3){
                     sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"Buffer emptied\"}" );
                     mainQueue.call(printf,"Buffer emptied\n");
                     Flag_Set2();
@@ -191,31 +191,13 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
 
                 }
         }
+    } 
     }
+    if ((method_name = "HighLDRValue")){
+
+
+        printf("New LDR limit: %i", (int)payload);
     }
-    if((method_name = "LightAlarmSP")){
-        int num= 0;
-        int AlarmSP = 0;
-        if(payload[1] == 'l'){
-        for(int i = 2; i < size -1; i++){
-            num = ((payload[i]) - 48);
-            AlarmSP = (AlarmSP*10) + num;
-        } 
-        LLAlarmset = true;
-        AzureSP_check(AlarmSP,'L', 'L');
-        sprintf(RESPONSE_STRING, "{ \"AlarmRes\" : \"Low Alarm setpoint to %d\"}", AlarmSP);
-        }
-
-        if(payload[1] == 'h'){
-        for(int i = 2; i < size -1; i++){
-            num = ((payload[i]) - 48);
-            AlarmSP = (AlarmSP*10) + num;
-        }
-        LLAlarmset = true;
-        AzureSP_check(AlarmSP,'L', 'H');
-        sprintf(RESPONSE_STRING, "{ \"AlarmRes\" : \"High Alarm setpoint to %d\"}", AlarmSP);
-        }}
-
 
      int status = 200;
      
@@ -330,8 +312,6 @@ cleanup:
     IoTHubDeviceClient_Destroy(client_handle);
     IoTHub_Deinit();
 }
-
-
 
 
 

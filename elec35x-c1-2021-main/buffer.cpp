@@ -19,7 +19,6 @@ microseconds SilenceT = 0s;
 extern Thread t4;           // IOT thread for usage
 Buzzer alarm;
 extern int numberSamples;
-extern void Flag_Set3();
 int Lightarray[8] = {0};
 float Temparray[8] = {0};
 float Pressarray[8] {0};
@@ -62,31 +61,25 @@ void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
 
 
 void buffer::checkvalues (int l, float T, float P){                 //Take values as parameter to check
-    ldrVal = l;                                                   
-    TempVal = T;                                                  //assign internally for ease of comparing
-    PressVal = P;
+    ldralarm = l;                                                   
+    Tempalarm = T;                                                  //assign internally for ease of comparing
+    Pressalarm = P;
     SilenceT = buzzT.elapsed_time();
-
     if ((AckPress == false) | (SilenceT > 60s)){
-    if(ldrVal <= ldralarm_low) {    //set high and low using or condition to encapsulate boundary
+    if((ldralarm >= ldralarm_high | ldralarm <= ldralarm_low) ){    //set high and low using or condition to encapsulate boundary
+
         alarm.playTone("C", Buzzer::LOWER_OCTAVE);                  //play buzzer to notify threshold breached
-        mainQueue.call(printf,"Light Level Low Warning!!\n");           //message added to queue to print when pointer points to it
+        mainQueue.call(printf,"Light Level Warning!!\n");           //message added to queue to print when pointer points to it
         //    t5.flag_set(2);             //if threshold breached
     }
 
-    if(ldrVal >= ldralarm_high){    //set high and low using or condition to encapsulate boundary
-        alarm.playTone("C", Buzzer::LOWER_OCTAVE);                  //play buzzer to notify threshold breached
-        mainQueue.call(printf,"Light Level High Warning!!\n");           //message added to queue to print when pointer points to it
-        //    t5.flag_set(2);             //if threshold breached
-    }
-
-    if(TempVal >= tempalarm_high | TempVal <= tempalarm_low){
+    if(Tempalarm >= tempalarm_high | Tempalarm <= tempalarm_low){
         alarm.playTone("C", Buzzer::LOWER_OCTAVE);
         mainQueue.call(printf,"Temperature Level Warning!!\n");
         //    t5.flag_set(2);       //so if we want to test these, CERRorcount reduce to  3 and that way, if these get called, alarm will go of and reset the whole thing
     }
 
-    if(PressVal >= pressalarm_high | PressVal <= pressalarm_low){
+    if(Pressalarm >= pressalarm_high | Pressalarm <= pressalarm_low){
         alarm.playTone("C", Buzzer::LOWER_OCTAVE);
         mainQueue.call(printf,"Pressure Level Warning!!\n");
         //    t5.flag_set(2);
@@ -103,7 +96,6 @@ void buffer::updatearrays(int l, float T, float P){
     Lightarray[0] = l;
     Temparray[0] = T;
     Pressarray[0] = P;
-    Flag_Set3();
 }
 
 
@@ -112,23 +104,6 @@ void BuzzStop(){
      AckPress = true;   
      buzzT.start();
      mainQueue.call(printf,"Alarm Silenced\n");
-}
-
-void buffer::azureSetpoint(int x, char y, char z){
-    if(y == 'L' && z == 'H')
-    {
-        ldralarm_high = x;
-        mainQueue.call(printf, ("Light High Alarm Setpoint changed to: %d\n"), ldralarm_high);
-
-    }
-
-        if(y == 'L' && z == 'L')
-    {
-        ldralarm_low = x;
-        mainQueue.call(printf, ("Light Low Alarm Setpoint changed to: %d\n"), ldralarm_low);
-  
-    }
-
 }
 
 
