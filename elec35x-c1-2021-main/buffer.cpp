@@ -46,15 +46,15 @@ void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
         iotTemp = T;
         iotPress = P;
         osStatus stat = mail_box.put(message);  //send message
-            if (stat != osOK) { //if message fails error is recorded
-                redLED = 1; //red light comes on
+            if (stat != osOK) {                 //if message fails error is recorded
+                redLED = 1;                     //red light comes on
                 error("buffering data failed\n"); //passes  error comman
-                greenLED = 0; // helathy light off
-                mail_box.free(message); // remove message from mail_box
+                greenLED = 0;                   // helathy light off
+                mail_box.free(message);         // remove message from mail_box
             return;
                     } 
             else{
-                greenLED = 1; //healthy light on if buffer write successful}
+                greenLED = 1;                   //healthy light on if buffer write successful}
 
         }
 
@@ -75,7 +75,7 @@ void buffer::checkvalues (int l, float T, float P){                 //Take value
     }
 
     if(ldrVal >= ldralarm_high){    //set high and low using or condition to encapsulate boundary
-        alarm.playTone("C", Buzzer::LOWER_OCTAVE);                  //play buzzer to notify threshold breached
+        alarm.playTone("C", Buzzer::HIGHER_OCTAVE);                  //play buzzer to notify threshold breached
         mainQueue.call(printf,"Light Level High Warning!!\n");           //message added to queue to print when pointer points to it
         //    t5.flag_set(2);             //if threshold breached
     }
@@ -92,6 +92,8 @@ void buffer::checkvalues (int l, float T, float P){                 //Take value
         //    t5.flag_set(2);
     }
     buzzT.reset();                                                  //reset buzzer so it doesns't ring continuously
+    if (SilenceT > 60s){                                            //allow cancellation of alarm multiple times
+        AckPress == false);}                                        //reset blue button status so can be pressed more than once to turn off alarm
 
     }
 }
@@ -108,11 +110,15 @@ void buffer::updatearrays(int l, float T, float P){
 
 
 void BuzzStop(){
-     alarm.rest();
-     AckPress = true;   
-     buzzT.start();
-     mainQueue.call(printf,"Alarm Silenced\n");
+    alarm.rest();                               //silence alarm
+    AckPress = true;                            //bool for if switch has been pressed, in this case it has
+    buzzT.start();                              //start timer and used above to check if 60s has passed
+    mainQueue.call(printf,"Alarm Silenced\n");  //queue message that alarm has been silenced
 }
+
+void buzzstopISR(){
+    wait_us(10000);             //let noise settle
+    mainQueue.call(&BuzzStop);  //& is implied. calls function to cancel buzzer
 
 void buffer::azureSetpoint(int x, char y, char z){
     if(y == 'L' && z == 'H')

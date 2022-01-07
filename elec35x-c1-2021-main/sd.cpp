@@ -5,7 +5,7 @@
 
 
 SDBlockDevice sdc(PB_5, PB_4, PB_3, PF_3);
-
+Mutex mutex2;
 
 void SDCardSetup(){
     //for(int z = 0;z >2;z++) { //loop to init sd card sometimes doesnt always do it first time??
@@ -47,6 +47,7 @@ void SDCardWrite(){
         ThisThread::flags_clear(1);
         FILE *fp = fopen("/sd/test.txt","a"); //Open file to  write
         for(p = 0; p<(SDwriteFreq); p++){
+        //mutex2.lock();
         buffer* payload;
         payload = mail_box.try_get(); 
         buffer msg(payload->date_time, payload->ldr, payload->Temp, payload->Press);
@@ -60,6 +61,7 @@ void SDCardWrite(){
         fclose(fp);
         p = 0;
         r++;
+        //mutex2.unlock();
         }
         
     }
@@ -79,5 +81,6 @@ void SDCardRead(){
 
 
 void Queue_Read(){
-     mainQueue.call(&SDCardRead);
+    Wait_us(10000);                 //switch debounce
+     mainQueue.call(&SDCardRead);   //queue read sd card so it doensn't clash with anything
                 }

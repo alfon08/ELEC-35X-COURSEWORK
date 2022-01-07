@@ -31,6 +31,10 @@ int numberSamples = 0;
 Ticker Samptick;                            //ISR for triggering sampling
 Timer updatetmr;                            //Timer for triggering update 
 
+
+//mutex
+Mutex mutex;
+
 //Threads
 Thread t1(osPriorityAboveNormal);            //Sampling Thread 
 Thread t2(osPriorityNormal);                 //Buffer Thread
@@ -104,7 +108,7 @@ void bufferSample(){
                             if(!empt){      // if not empty
                                 t3.flags_set(1); //send signal to SD card thread
                                 i = 0;      // reset counter integer
-                                numberSamples = 0;
+                                numberSamples = 0;  //reset number of samples
                                     }
                                           }
                      }                
@@ -167,11 +171,11 @@ void CritError(){
         CriticalSectionLock::enable();  //lock so no interrupts can interrupt it as ticker is an interrupt
         printf ("critical error has occured. system will restart in 30 seconds");
         alarmm.playTone("C", Buzzer::LOWER_OCTAVE);      //if this doesn't work, probs just need to be initilised here to extern it as its in other file
-        redLed2=0;
+        redLed2=0;                                       //turn on red led
         //CErrorcount=0;
         Watchdog &watchdog = Watchdog::get_instance();
         watchdog.start(RESET_TIME);              //starts watchdog timer for 30 sec. whole system resets after time is over
-        //CIEbutton.waitforpress();                //block by waiting for press
+        //CIEbutton.waitforpress();              //block by waiting for press
         CriticalSectionLock::disable();
         //sleep();
     }
@@ -180,11 +184,11 @@ void CritError(){
 //**
 void critErrbtnISR (){          //interrupt service routine for the switch at PG_1
     CIEbutton.rise(NULL);
-    t5.flags_set(2);             //trying to keep the interrupt short as possible and 
+    t5.flags_set(2);            //trying to keep the interrupt short as possible and 
                                 //let function do the work
 }
 
-//tis a test commit
+                }
 
 int main() {
     
@@ -193,19 +197,22 @@ int main() {
         //set traf light 2
         redLed2.output();
         redLed2.mode(PinMode::OpenDrainNoPull);
-        redLed2 = 1;             //as open drain, set to 0 keep off
+        redLed2 = 1;           //as open drain, set to 0 keep off
 
     if (!connect()) return -1; // obtain network connection
     if (!setTime()) return -1; // obtain time and update RTC
         matrix_bar start;
         SDCardSetup();          // Sets up SD card
-        btnA.rise(&Queue_Read); //ISR for blue button which reads SD card
-        Bluebtn.rise(&BuzzStop);
+        btnA.rise(&Queue_Read); // ISR for blue button which reads SD card
+        Bluebtn.rise(&buzzstopISR);// ISR to cancel buzzer for 1 minute
         t1.start(GetSample);    // sampling thread start
+        //t1.join();
         t2.start(bufferSample); // buffer thread start
+        //t2.join();        //waiting for each thread to finish 
         t3.start(SDCardWrite);  // sd card thread start
+        //t3.join();
         t4.start(iotazure);     // iothub thread start
-        t5.start(CritError);     // reset thread 
+        t5.start(CritError);    // reset thread  - probably dont eed this
         t6.start(matrix_display);
         Samptick.attach(&Flag_Set, sampRate);   // ISR for control of sample rate
         updatetmr.start();      //timer for buffer write
