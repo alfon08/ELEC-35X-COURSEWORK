@@ -7,16 +7,11 @@
 
 class buffer { 
     private:
-        int ldralarm;
-        float Tempalarm;
-        float Pressalarm;
-        int ldralarm_high = 50000;              //internal constraint of values defined for safe usage
-        int ldralarm_low = 30000;               //outside these thresholds are deemed dangerous
-        float tempalarm_low = 15.00;            //changing these values will change threshold boundary
-        float tempalarm_high = 22.00;
-        float pressalarm_low = 500.00;
-        float pressalarm_high = 1500.00;
-
+        int ldrVal;
+        float TempVal;
+        float PressVal;
+        bool LHAlarmSet = false;
+        bool LLAlarmSet = false;
 
     public:
         int ldr; // integer for ldr buffered sample
@@ -29,7 +24,8 @@ class buffer {
         void checkvalues (int l, float T, float P);
         void BuzzStop();
         void updatearrays(int l, float T, float P);
-  
+        void azureSetpoint(int x, char y, char z);
+
     //Constructor
          buffer(char dt[32], int l, float t, float p) {
             int stringLength = strlen(dt); // finds length of string
@@ -41,6 +37,13 @@ class buffer {
             Temp = t; // sets passed in value for t to temp
             Press = p; // sets passed in value for p to press
                                         }
+
+        int ldralarm_high = 50000;              //internal constraint of values defined for safe usage
+        int ldralarm_low = 30000;               //outside these thresholds are deemed dangerous
+        float tempalarm_low = 15.00;            //changing these values will change threshold boundary
+        float tempalarm_high = 22.00;
+        float pressalarm_low = 500.00;
+        float pressalarm_high = 1500.00;
 };
 
 
