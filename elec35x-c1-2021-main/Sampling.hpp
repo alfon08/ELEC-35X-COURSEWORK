@@ -10,20 +10,20 @@ using namespace uop_msb;
 
 class Sampling{
 
-private: //Private Properties
+private:                //Private Properties
 //structure for sampled date
 struct Sample{
 unsigned int _ldrEng; 
-float _Temp;
+float _Temp;            //internal usage data for samples taken
 float _Press;}data;
 
-AnalogIn _ldr; //ldr sensor
-EnvSensor BMP280; // environment sensor
-unsigned int samples; // samples counter
+AnalogIn _ldr;          //ldr sensor
+EnvSensor BMP280;       // environment sensor
+unsigned int samples;   // samples counter
 
 
 
-public: //Constructor and Member functions
+public:                 //Constructor and Member functions
 char Samptime_date[20]; // char for date and time
 //structure for average samples
 struct Samps{
@@ -33,8 +33,8 @@ float PressAVG;
 char Date_Time[32];}dataAVG;
 int tdsec;
 
-void Sample (); // sample function
-void UpdateSample(); // update samples function
+void Sample ();        // sample function
+void UpdateSample();   // update samples function
 
 //constructor
 Sampling(PinName AnalogIn) :_ldr(AnalogIn){

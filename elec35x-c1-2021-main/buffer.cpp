@@ -6,22 +6,27 @@
 #include "Sampling.hpp"
 #include "net.hpp"
 
-
+// variables associated with IOT
 int iotLight;
-float iotTemp;              //these will be sent to the IOT
+float iotTemp;             
 float iotPress;                 
 char iotdate_time[32];
-Timer buzzT;                //timer for buzzer
-bool AckPress = false;
-DigitalOut redLED(TRAF_RED1_PIN);  // red led to hightlight buffer error
-DigitalOut greenLED(TRAF_GRN1_PIN); //  green light to highlight buffer is healthy
-microseconds SilenceT = 0s;
+
+// cancel alarm 
+Timer buzzT;                // timer for buzzer
+bool AckPress = false;      // if blue user button has been pressed
+Buzzer alarm;               // initiate alarm
+microseconds SilenceT = 0s; // will record time elapsed so we know when 60sec have passed before gag order on alarm gets lifted
+
+//lights to state functionality of whether something is working or now. Quick and easy to understand by us
+DigitalOut redLED(TRAF_RED1_PIN);   // red led to hightlight buffer error
+DigitalOut greenLED(TRAF_GRN1_PIN); // green light to highlight buffer is healthy
+
 extern Thread t4;           // IOT thread for usage
-Buzzer alarm;
-extern int numberSamples;
+extern int numberSamples;    
 extern void Flag_Set3();
 int Lightarray[8] = {0};
-float Temparray[8] = {0};
+float Temparray[8] = {0};   //arrays to hold updated values of sensors
 float Pressarray[8] {0};
 int c =0;
 
@@ -39,17 +44,17 @@ void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
         }
         date_time[stringLength] = '\0';
         iotdate_time[stringLength] = '\0';
-        message-> ldr = l; //write passed values to message type buffer*
-        message-> Temp = T;
+        message-> ldr = l; 
+        message-> Temp = T;                     //write passed values to message type buffer*
         message-> Press = P;
-        iotLight = l;
-        iotTemp = T;
-        iotPress = P;
+        iotLight = l;                           //create some stack based local variables to hold data used later for iot purposes
+        iotTemp = T;                            
+        iotPress = P;                           
         osStatus stat = mail_box.put(message);  //send message
             if (stat != osOK) {                 //if message fails error is recorded
                 redLED = 1;                     //red light comes on
                 error("buffering data failed\n"); //passes  error comman
-                greenLED = 0;                   // helathy light off
+                greenLED = 0;                   // healthy light off
                 mail_box.free(message);         // remove message from mail_box
             return;
                     } 
@@ -61,29 +66,29 @@ void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
 }
 
 
-void buffer::checkvalues (int l, float T, float P){                 //Take values as parameter to check
+void buffer::checkvalues (int l, float T, float P){              //Take values as parameter to check
     ldrVal = l;                                                   
-    TempVal = T;                                                  //assign internally for ease of comparing
+    TempVal = T;                                                 //assign internally for ease of comparing
     PressVal = P;
     SilenceT = buzzT.elapsed_time();
 
     if ((AckPress == false) | (SilenceT > 60s)){
-    if(ldrVal <= ldralarm_low) {    //set high and low using or condition to encapsulate boundary
-        alarm.playTone("C", Buzzer::LOWER_OCTAVE);                  //play buzzer to notify threshold breached
-        mainQueue.call(printf,"Light Level Low Warning!!\n");           //message added to queue to print when pointer points to it
-        //    t5.flag_set(2);             //if threshold breached
+    if(ldrVal <= ldralarm_low) {                                 //set high and low using OR condition to encapsulate boundary
+        alarm.playTone("C", Buzzer::LOWER_OCTAVE);               //play buzzer to notify threshold breached
+        mainQueue.call(printf,"Light Level Low Warning!!\n");    //message added to queue to print when pointer points to it
+        //    t5.flag_set(2);                                    //if threshold breached
     }
 
     if(ldrVal >= ldralarm_high){    //set high and low using or condition to encapsulate boundary
-        alarm.playTone("C", Buzzer::HIGHER_OCTAVE);                  //play buzzer to notify threshold breached
-        mainQueue.call(printf,"Light Level High Warning!!\n");           //message added to queue to print when pointer points to it
-        //    t5.flag_set(2);             //if threshold breached
+        alarm.playTone("C", Buzzer::HIGHER_OCTAVE);              //play buzzer to notify threshold breached
+        mainQueue.call(printf,"Light Level High Warning!!\n");   //message added to queue to print when pointer points to it
+        //    t5.flag_set(2);                                    //if threshold breached
     }
 
     if(TempVal >= tempalarm_high | TempVal <= tempalarm_low){
         alarm.playTone("C", Buzzer::LOWER_OCTAVE);
         mainQueue.call(printf,"Temperature Level Warning!!\n");
-        //    t5.flag_set(2);       //so if we want to test these, CERRorcount reduce to  3 and that way, if these get called, alarm will go of and reset the whole thing
+        //    t5.flag_set(2);                                    //so if we want to test these, CERRorcount reduce to  3 and that way, if these get called, alarm will go of and reset the whole thing
     }
 
     if(PressVal >= pressalarm_high | PressVal <= pressalarm_low){
@@ -91,48 +96,45 @@ void buffer::checkvalues (int l, float T, float P){                 //Take value
         mainQueue.call(printf,"Pressure Level Warning!!\n");
         //    t5.flag_set(2);
     }
-    buzzT.reset();                                                  //reset buzzer so it doesns't ring continuously
-    if (SilenceT > 60s){                                            //allow cancellation of alarm multiple times
-        AckPress == false);}                                        //reset blue button status so can be pressed more than once to turn off alarm
+    buzzT.reset();                                               //reset buzzer so it doesns't ring continuously
+    if (SilenceT > 60s){                                         //allow cancellation of alarm multiple times
+        AckPress == false);}                                     //reset blue button status so can be pressed more than once to turn off alarm
 
     }
 }
 void buffer::updatearrays(int l, float T, float P){
     for(int i = 7; i >0; i --){
     Lightarray[i] = Lightarray[i -1];    
-    Temparray[i] = Temparray[i -1];
+    Temparray[i] = Temparray[i -1];             //pass in values into each space in array decrement style
     Pressarray[i] = Pressarray[i -1];}
     Lightarray[0] = l;
-    Temparray[0] = T;
+    Temparray[0] = T;                           //pass in the last value into the zeroeth position
     Pressarray[0] = P;
-    Flag_Set3();
+    Flag_Set3();                                //set flag to start the matrix thread
 }
 
 
 void BuzzStop(){
+    buzzT.start();                              //start timer and used above to check if 60s has passed
     alarm.rest();                               //silence alarm
     AckPress = true;                            //bool for if switch has been pressed, in this case it has
-    buzzT.start();                              //start timer and used above to check if 60s has passed
     mainQueue.call(printf,"Alarm Silenced\n");  //queue message that alarm has been silenced
 }
 
 void buzzstopISR(){
-    wait_us(10000);             //let noise settle
-    mainQueue.call(&BuzzStop);  //& is implied. calls function to cancel buzzer
+    wait_us(10000);                             //let noise settle
+    mainQueue.call(&BuzzStop);                  //& is implied. calls function to cancel buzzer
 
 void buffer::azureSetpoint(int x, char y, char z){
     if(y == 'L' && z == 'H')
     {
         ldralarm_high = x;
         mainQueue.call(printf, ("Light High Alarm Setpoint changed to: %d\n"), ldralarm_high);
-
     }
-
         if(y == 'L' && z == 'L')
     {
         ldralarm_low = x;
         mainQueue.call(printf, ("Light Low Alarm Setpoint changed to: %d\n"), ldralarm_low);
-  
     }
 
 }
