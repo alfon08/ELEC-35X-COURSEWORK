@@ -18,36 +18,39 @@
 #include "net.hpp"
 #include "matrix.hpp"
 
+//interrupts
 InterruptIn Bluebtn(USER_BUTTON);           //used for printing out what is in the SD card
 InterruptIn btnA(BTN1_PIN);                 //used for printing out what is in the SD card
-Sampling Samp(AN_LDR_PIN);                   // constructor for setting up Sampling
+InterruptIn CIEbutton (BTN2_PIN);
+
+Sampling Samp(AN_LDR_PIN);                  // constructor for setting up Sampling
 buffer mes(0, 0, 0.0, 0.0);                 // constructor for setting up the buffer
 LCD_16X2_DISPLAY disp;
 Mail<buffer, 16> mail_box;                  //buffer holds 16 of type buffer
-int SDwriteFreq = 16;                        //writes to SD card afer x number of samples
-microseconds sampRate = 100ms;              //sampling Rate
+int SDwriteFreq = 16;                       //writes to SD card afer x number of samples
+
 int numberSamples = 0;
-//Timers
+//Timers and clock related variables
 Ticker Samptick;                            //ISR for triggering sampling
 Timer updatetmr;                            //Timer for triggering update 
-
+microseconds sampRate = 100ms;              //sampling Rate
 
 //mutex
 Mutex mutex;
 
 //Threads
-Thread t1(osPriorityAboveNormal);            //Sampling Thread 
-Thread t2(osPriorityNormal);                 //Buffer Thread
-Thread t3(osPriorityNormal);                 //SD card Thread
-Thread t4(osPriorityNormal);                 //IOTHub Thread
-
-//* all in one place for ease. look for *
+Thread t1(osPriorityAboveNormal);           //Sampling Thread 
+Thread t2(osPriorityNormal);                //Buffer Thread
+Thread t3(osPriorityNormal);                //SD card Thread
+Thread t4(osPriorityNormal);                //IOTHub Thread
 Thread t5(osPriorityNormal);                //critical error thread
 Thread t6(osPriorityNormal);
+
+
 DigitalInOut redLed2 (TRAF_RED2_PIN);
 volatile int CErrorcount ;                  //critical error count
 const uint32_t RESET_TIME = 30000;          //30 sec countdown for watchdog
-InterruptIn CIEbutton (BTN2_PIN);
+
 Buzzer alarmm;
 extern int Lightarray[8];
 extern float Temparray[8];
@@ -56,20 +59,20 @@ extern bool LHAlarmset;
 extern bool LLAlarmset;
 extern int iotLight;
 bool SPUpdate = false;
-char y = 'L'; //matrix array set to light by default
+char y = 'L';                               //matrix array set to light by default
 microseconds tmrUpdate = 0ms;               //time to compare 
 EventQueue mainQueue;
 extern void BuzzStop();
 
 
 
-void Flag_Set(){                            //Sets the flag to start sampling
+void Flag_Set(){                            // Sets the flag to start sampling
      t1.flags_set(1);}
 
-void Flag_Set2(){                            //
+void Flag_Set2(){                           // fucntion to start SD card write
      t3.flags_set(1);}
 
-void Flag_Set3(){                            //
+void Flag_Set3(){                           // fucntion to start the matrix thread
      t6.flags_set(1);}
 
 //Thread 1
@@ -77,7 +80,7 @@ void GetSample(){
         while(true){
             ThisThread::flags_wait_any(1); 
             ThisThread::flags_clear(1); 
-            Samp.Sample();                   //function to take samples and accumulate values
+            Samp.Sample();                  //function to take samples and accumulate values
             tmrUpdate = updatetmr.elapsed_time(); //read value of timer
                 if(tmrUpdate > 9000ms){     //update every 9 seconds - just less than every 10s. 
                     updatetmr.reset();      // resets timer
