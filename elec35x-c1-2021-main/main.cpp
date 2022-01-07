@@ -6,6 +6,7 @@
 #include "mbed.h"   //this has the watchdog function in it
 #include "uop_msb.h"
 #include "rtos/ThisThread.h"
+#include <cstdio>
 #include <cstring>
 #include <string.h>
 #include "Sampling.hpp"
@@ -19,7 +20,7 @@
 
 InterruptIn Bluebtn(USER_BUTTON);           //used for printing out what is in the SD card
 InterruptIn btnA(BTN1_PIN);                 //used for printing out what is in the SD card
-Sampling ldr(AN_LDR_PIN);                   // constructor for setting up Sampling
+Sampling Samp(AN_LDR_PIN);                   // constructor for setting up Sampling
 buffer mes(0, 0, 0.0, 0.0);                 // constructor for setting up the buffer
 LCD_16X2_DISPLAY disp;
 Mail<buffer, 16> mail_box;                  //buffer holds 16 of type buffer
@@ -47,7 +48,10 @@ Buzzer alarmm;
 extern int Lightarray[8];
 extern float Temparray[8];
 extern float Pressarray[8];
+extern bool LHAlarmset;
+extern bool LLAlarmset;
 extern int iotLight;
+bool SPUpdate = false;
 char y = 'L'; //matrix array set to light by default
 microseconds tmrUpdate = 0ms;               //time to compare 
 EventQueue mainQueue;
@@ -58,15 +62,18 @@ extern void BuzzStop();
 void Flag_Set(){                            //Sets the flag to start sampling
      t1.flags_set(1);}
 
-void Flag_Set2(){                            //Sets the flag to start sampling
+void Flag_Set2(){                            //
      t3.flags_set(1);}
+
+void Flag_Set3(){                            //
+     t6.flags_set(1);}
 
 //Thread 1
 void GetSample(){
         while(true){
             ThisThread::flags_wait_any(1); 
             ThisThread::flags_clear(1); 
-            ldr.Sample();                   //function to take samples and accumulate values
+            Samp.Sample();                   //function to take samples and accumulate values
             tmrUpdate = updatetmr.elapsed_time(); //read value of timer
                 if(tmrUpdate > 9000ms){     //update every 9 seconds - just less than every 10s. 
                     updatetmr.reset();      // resets timer
@@ -83,14 +90,13 @@ void bufferSample(){
                 ThisThread::flags_wait_any(1); 
                 ThisThread::flags_clear(1);
                 //Take average of samples data and update previous readings
-                ldr.UpdateSample();
+                Samp.UpdateSample();
                 //mainQueue.call(printf, "data recorded in buffer at %s", ldr.Samptime_date);
                 //Record average samples in buffer
-                mes.SpaceAllocate(ldr.Samptime_date, ldr.dataAVG.ldrEngAVG, ldr.dataAVG. TempAVG, ldr.dataAVG.PressAVG);//Allocate date, ldr, temp and pres in the buffer
-                mes.checkvalues(ldr.dataAVG.ldrEngAVG, ldr.dataAVG. TempAVG, ldr.dataAVG.PressAVG); //Check if they are above or below limits->WARNING
-                mes.updatearrays(ldr.dataAVG.ldrEngAVG, ldr.dataAVG. TempAVG, ldr.dataAVG.PressAVG);
+                mes.SpaceAllocate(Samp.Samptime_date, Samp.dataAVG.ldrEngAVG, Samp.dataAVG.TempAVG, Samp.dataAVG.PressAVG);//Allocate date, ldr, temp and pres in the buffer
+                mes.checkvalues(Samp.dataAVG.ldrEngAVG, Samp.dataAVG.TempAVG, Samp.dataAVG.PressAVG); //Check if they are above or below limits->WARNING
+                mes.updatearrays(Samp.dataAVG.ldrEngAVG, Samp.dataAVG.TempAVG, Samp.dataAVG.PressAVG);
                 t4.flags_set(1);            // set flag for updating data on IOTHub
-                
                 i = ++i;                    // increement counter
                 numberSamples++;
                     if(i == (SDwriteFreq)){ // if counter is equal to specified total stored samples write to sd
@@ -105,6 +111,20 @@ void bufferSample(){
 
                 }
 
+void AzureSP_check(int x, char y, char z){
+    if(LHAlarmset == true){
+        mes.azureSetpoint(x, y, z);
+        LHAlarmset = false;
+
+    }
+    if(LLAlarmset == true){
+        mes.azureSetpoint(x, y, z);
+        LLAlarmset = false;
+    }
+
+
+}
+
 //Thread 4
 void iotazure(){ 
     while(true){
@@ -116,21 +136,22 @@ void iotazure(){
 //Thread 6
 void matrix_display() {
     matrix_bar start;
-    while(true){
     start.clearMatrix();
     disp.cls();
     disp.locate(1, 0);
+    while(true){
+    disp.locate(1, 0);
     disp.printf("Display=%c\n",y);
         if(y == 'L'){
-            for(int i= 0; i<7; i++){
+            for(int i= 0; i<=7; i++){
             start.BarLight(Lightarray[i], i);
         }}
         if(y == 'T'){
-            for(int i= 0; i<7; i++){
+            for(int i= 0; i<=7; i++){
             start.BarTemp(Temparray[i], i);
             }}
         if(y == 'P'){
-            for(int i= 0; i<7; i++){
+            for(int i= 0; i<=7; i++){
             start.BarPres(Pressarray[i], i);
         }}}
 }

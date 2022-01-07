@@ -20,7 +20,7 @@
 #include "azure_cloud_credentials.h"
 #include <cstring>
 #include <string.h>
-
+#include "buffer.hpp"
 
 
 
@@ -29,7 +29,7 @@ void disconnect();
 bool setTime();
 void iothubrecord();
 void sendzure(int l, float t, float p);
-
+extern void AzureSP_check(int x, char y, char z);
 
 
 #endif

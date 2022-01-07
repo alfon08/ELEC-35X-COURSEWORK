@@ -97,7 +97,7 @@ void matrix_bar::BarLight (int data, int row){
         numberLED(0xFF, 0xFF, row);
     }
 }
-void matrix_bar::BarTemp (int data, int row){
+void matrix_bar::BarTemp (float data, int row){
     if(data == 0){ //0 or no data
         numberLED(0x00, 0X00, row);
     }
@@ -152,7 +152,7 @@ void matrix_bar::BarTemp (int data, int row){
     }
 }
 
-void matrix_bar::BarPres (int data, int row){
+void matrix_bar::BarPres (float data, int row){
     if(data < 300){ //0 or no data
         numberLED(0x00, 0X00, row);
     }
