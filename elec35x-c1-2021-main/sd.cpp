@@ -81,6 +81,6 @@ void SDCardRead(){
 
 
 void Queue_Read(){
-    Wait_us(10000);                 //switch debounce
+    //Wait_us(10000);                 //switch debounce
      mainQueue.call(&SDCardRead);   //queue read sd card so it doensn't clash with anything
                 }

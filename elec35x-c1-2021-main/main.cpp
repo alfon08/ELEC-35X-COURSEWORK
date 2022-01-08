@@ -57,6 +57,8 @@ extern float Temparray[8];
 extern float Pressarray[8];
 extern bool LHAlarmset;
 extern bool LLAlarmset;
+extern bool TLAlarmset;
+extern bool PLAlarmset;
 extern int iotLight;
 bool SPUpdate = false;
 char y = 'L';                               //matrix array set to light by default
@@ -120,15 +122,16 @@ void bufferSample(){
 
 void AzureSP_check(int x, char y, char z){
     if(LHAlarmset == true){
+        printf("\n .1\n");
         mes.azureSetpoint(x, y, z);
         LHAlarmset = false;
 
     }
     if(LLAlarmset == true){
+        printf("\n .2 %i\n", x);
         mes.azureSetpoint(x, y, z);
         LLAlarmset = false;
     }
-
 
 }
 
@@ -191,7 +194,7 @@ void critErrbtnISR (){          //interrupt service routine for the switch at PG
                                 //let function do the work
 }
 
-                }
+                
 
 int main() {
     
@@ -207,7 +210,7 @@ int main() {
         matrix_bar start;
         SDCardSetup();          // Sets up SD card
         btnA.rise(&Queue_Read); // ISR for blue button which reads SD card
-        Bluebtn.rise(&buzzstopISR);// ISR to cancel buzzer for 1 minute
+        //Bluebtn.rise(&buzzstopISR);// ISR to cancel buzzer for 1 minute
         t1.start(GetSample);    // sampling thread start
         //t1.join();
         t2.start(bufferSample); // buffer thread start

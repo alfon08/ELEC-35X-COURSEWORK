@@ -98,7 +98,7 @@ void buffer::checkvalues (int l, float T, float P){              // Take values 
     }
     buzzT.reset();                                               // reset buzzer so it doesns't ring continuously
     if (SilenceT > 60s){                                         // allow cancellation of alarm multiple times
-        AckPress == false);}                                     // reset blue button status so can be pressed more than once to turn off alarm
+        (AckPress == false);}                                     // reset blue button status so can be pressed more than once to turn off alarm
 
     }
 }
@@ -125,6 +125,7 @@ void buzzstopISR(){
     mainQueue.call(printf,"silencing alarm, please wait\n");
     wait_us(10000);                             // let noise settle
     mainQueue.call(&BuzzStop);                  // & is implied. calls function to cancel buzzer
+}
     // as this is low priority, we have put it into a queue system so it avoids interrupting any other threads and messing with the synchronisation
     // as we do not mind if delayed by a tiny bit
 
@@ -139,8 +140,27 @@ void buffer::azureSetpoint(int x, char y, char z){
         ldralarm_low = x;
         mainQueue.call(printf, ("Light Low Alarm Setpoint changed to: %d\n"), ldralarm_low);
     }
+    if(y == 'T' && z == 'H')
+    {
+        tempalarm_high = x;
+        mainQueue.call(printf, ("Temperature High Alarm Setpoint changed to: %f\n"), tempalarm_high);
+    }
+        if(y == 'T' && z == 'L')
+    {
+        tempalarm_low = x;
+        mainQueue.call(printf, ("Temperature Low Alarm Setpoint changed to: %f\n"), tempalarm_low);
+    }
+    if(y == 'P' && z == 'H')
+    {
+        pressalarm_high = x;
+        mainQueue.call(printf, ("Pressure High Alarm Setpoint changed to: %f\n"), pressalarm_high);
+    }
+        if(y == 'P' && z == 'L')
+    {
+        pressalarm_low = x;
+        mainQueue.call(printf, ("Pressure Low Alarm Setpoint changed to: %f\n"), pressalarm_low);
+    }
 
 }
-
 
 

@@ -25,6 +25,8 @@ class buffer {
         void BuzzStop();                                          //function to cancel buzzer
         void updatearrays(int l, float T, float P);               //function to update arrays for arrays
         void azureSetpoint(int x, char y, char z);                //fuction to set/change alarm threshold from iot
+        void azureSetpointT(int x, char y, char z);
+        void azureSetpointP(int x, char y, char z);
 
     //Constructor
          buffer(char dt[32], int l, float t, float p) {

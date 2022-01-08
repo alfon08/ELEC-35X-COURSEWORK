@@ -22,6 +22,10 @@ extern void Flag_Set2();
 buffer set(0, 0, 0.0, 0.0);
 bool LHAlarmset = false;
 bool LLAlarmset = false;
+bool THAlarmset = false;
+bool TLAlarmset = false;
+bool PHAlarmset = false;
+bool PLAlarmset = false;
 extern NetworkInterface *_defaultSystemNetwork;
 time_t timestamp ;
 extern Sampling ldr;
@@ -214,7 +218,54 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
         LLAlarmset = true;
         AzureSP_check(AlarmSP,'L', 'H');
         sprintf(RESPONSE_STRING, "{ \"AlarmRes\" : \"High Alarm setpoint to %d\"}", AlarmSP);
-        }}
+        }
+    }
+    if((method_name = "TemperatureAlarmSP")){
+        int num1= 0;
+        int AlarmSP1 = 0;
+        if(payload[1] == 'l'){
+        for(int i = 2; i < size -1; i++){
+            num1 = ((payload[i]) - 48);
+            AlarmSP1 = (AlarmSP1*10) + num1;
+        } 
+        LLAlarmset = true;
+        AzureSP_check(AlarmSP1,'T', 'L');
+        sprintf(RESPONSE_STRING, "{ \"AlarmRes\" : \"Low Alarm setpoint to %d\"}", AlarmSP1);
+        }
+
+        if(payload[1] == 'h'){
+        for(int i = 2; i < size -1; i++){
+            num1 = ((payload[i]) - 48);
+            AlarmSP1 = (AlarmSP1*10) + num1;
+        }
+        LLAlarmset = true;
+        AzureSP_check(AlarmSP1,'T', 'H');
+        sprintf(RESPONSE_STRING, "{ \"AlarmRes\" : \"High Alarm setpoint to %d\"}", AlarmSP1);
+        }
+    }
+    if((method_name = "PressureAlarmSP")){
+        int num2= 0;
+        int AlarmSP2 = 0;
+        if(payload[1] == 'l'){
+        for(int i = 2; i < size -1; i++){
+            num2 = ((payload[i]) - 48);
+            AlarmSP2 = (AlarmSP2*10) + num2;
+        } 
+        LLAlarmset = true;
+        AzureSP_check(AlarmSP2,'P', 'L');
+        sprintf(RESPONSE_STRING, "{ \"AlarmRes\" : \"Low Alarm setpoint to %d\"}", AlarmSP2);
+        }
+
+        if(payload[1] == 'h'){
+        for(int i = 2; i < size -1; i++){
+            num2 = ((payload[i]) - 48);
+            AlarmSP2 = (AlarmSP2*10) + num2;
+        }
+        LLAlarmset = true;
+        AzureSP_check(AlarmSP2,'P', 'H');
+        sprintf(RESPONSE_STRING, "{ \"AlarmRes\" : \"High Alarm setpoint to %d\"}", AlarmSP2);
+        }
+    }
 
 
      int status = 200;
