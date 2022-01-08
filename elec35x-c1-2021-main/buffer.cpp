@@ -22,6 +22,7 @@ microseconds SilenceT = 0s; // will record time elapsed so we know when 60sec ha
 DigitalOut redLED(TRAF_RED1_PIN);   // red led to hightlight buffer error
 DigitalOut greenLED(TRAF_GRN1_PIN); // green light to highlight buffer is healthy
 
+extern Watchdog &watchdog;
 extern Thread t4;           // IOT thread for usage
 extern int numberSamples;    
 extern void Flag_Set3();
