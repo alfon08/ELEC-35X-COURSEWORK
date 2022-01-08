@@ -44,7 +44,7 @@ Thread t2(osPriorityNormal);                //Buffer Thread
 Thread t3(osPriorityNormal);                //SD card Thread
 Thread t4(osPriorityNormal);                //IOTHub Thread
 Thread t5(osPriorityNormal);                //critical error thread
-Thread t6(osPriorityNormal);
+Thread t6(osPriorityNormal);                //matric thread
 
 
 DigitalInOut redLed2 (TRAF_RED2_PIN);
@@ -71,10 +71,10 @@ extern void BuzzStop();
 void Flag_Set(){                            // Sets the flag to start sampling
      t1.flags_set(1);}
 
-void Flag_Set2(){                           // fucntion to start SD card write
+void Flag_Set2(){                           // function to start SD card write
      t3.flags_set(1);}
 
-void Flag_Set3(){                           // fucntion to start the matrix thread
+void Flag_Set3(){                           // function to start the matrix thread
      t6.flags_set(1);}
 
 //Thread 1

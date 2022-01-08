@@ -102,7 +102,7 @@ void buffer::checkvalues (int l, float T, float P){              // Take values 
     }
     buzzT.reset();                                               // reset buzzer so it doesns't ring continuously
     if (SilenceT > 60s){                                         // allow cancellation of alarm multiple times
-        (AckPress == false);}                                     // reset blue button status so can be pressed more than once to turn off alarm
+        (AckPress == false);}                                    // reset blue button status so can be pressed more than once to turn off alarm
 
     }
 }
