@@ -34,7 +34,7 @@ int numberSamples = 0;
 Ticker Samptick;                            //ISR for triggering sampling
 Timer updatetmr;                            //Timer for triggering update 
 microseconds sampRate = 100ms;              //sampling Rate
-
+const uint32_t RESET_TIME = 30000;          //30 sec countdown for watchdog
 //mutex
 Mutex mutex;
 
@@ -49,7 +49,7 @@ Thread t6(osPriorityNormal);
 
 DigitalInOut redLed2 (TRAF_RED2_PIN);
 volatile int CErrorcount ;                  //critical error count
-const uint32_t RESET_TIME = 30000;          //30 sec countdown for watchdog
+
 
 Buzzer alarmm;
 extern int Lightarray[8];
@@ -145,6 +145,7 @@ void iotazure(){
 
 //Thread 6
 void matrix_display() {
+    //Watchdog::get_instance().kick();    //one last kick if it is needed, just uncomment
     matrix_bar start;
     start.clearMatrix();
     disp.cls();
@@ -167,7 +168,7 @@ void matrix_display() {
 }
 
 // * thread 5 *
-void CritError(){   
+/*void CritError(){   
     ThisThread::flags_wait_any(2); //block until this flag is set
     ThisThread::sleep_for(50ms);    //switch bounce to stabilise
     ThisThread::flags_clear(2);    //clear flag incase there were any due to switch bounce
@@ -186,8 +187,8 @@ void CritError(){
         //sleep();
     }
 
-}
-//**
+}*/
+
 void critErrbtnISR (){          //interrupt service routine for the switch at PG_1
     CIEbutton.rise(NULL);
     t5.flags_set(2);            //trying to keep the interrupt short as possible and 
@@ -219,9 +220,14 @@ int main() {
         //t3.join();
         t4.start(iotazure);     // iothub thread start
         t5.start(CritError);    // reset thread  - probably dont eed this
-        t6.start(matrix_display);
+        t6.start(matrix_display);               // matric thread start
+
+        Watchdog &watchdog = Watchdog::get_instance();  // get instance of watchdog
+        watchdog.start(RESET_TIME);                     // start watchdog timer
+        //and outer watchdog also set to 30 seconds so if there is something that hangs the problem for more than 30 seconds we restart whole main
+
         Samptick.attach(&Flag_Set, sampRate);   // ISR for control of sample rate
-        updatetmr.start();      //timer for buffer write
+        updatetmr.start();                      //timer for buffer write
         
     while (true) {
        mainQueue.dispatch_forever();            // main Queue for serial message management

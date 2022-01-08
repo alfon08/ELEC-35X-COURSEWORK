@@ -34,7 +34,9 @@ void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
     buffer* message = mail_box.try_alloc();
         if (message == NULL) {                  //error handling if failed to allocate space in buffer
             redLED = 1;                         // red light comes on
-            error("No space in buffer\n");      //passes  error command
+            Watchdog::get_instance().kick();    //kick the watchdog and start 30 seconds from here onwards
+            //here the 30sec is start fresh and we know where thr problem is
+            error("critical error - No space in Buffer. System restart in 30 seconds\n");      //passes  error command
             greenLED = 0;                       // healthy light comes off
         return;             }
         int stringLength = strlen(dt);
@@ -53,6 +55,7 @@ void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
         osStatus stat = mail_box.put(message);  //send message
             if (stat != osOK) {                 //if message fails error is recorded
                 redLED = 1;                     //red light comes on
+                Watchdog::get_instance().kick();//kick the watchdog and start 30 seconds from here onwards
                 error("buffering data failed\n"); // passes  error comman
                 greenLED = 0;                   // healthy light off
                 mail_box.free(message);         // remove message from mail_box
