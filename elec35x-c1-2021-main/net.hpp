@@ -18,18 +18,35 @@
 #include "azure_c_shared_utility/xlogging.h"
 #include "iothubtransportmqtt.h"
 #include "azure_cloud_credentials.h"
-#include <cstring>
-#include <string.h>
 #include "buffer.hpp"
+#include "mbed.h"
+#include "uop_msb.h"
+#include "rtos/ThisThread.h"
+#include "azure_c_shared_utility/xlogging.h"
+#include <chrono>
+#include "matrix.hpp"
+#include "sd.hpp"
 
+//externals
+extern NetworkInterface *_defaultSystemNetwork;
+extern int iotLight;
+extern float iotTemp;
+extern float iotPress;
+extern char iotdate[15];
+extern char y;
+extern char iotdate_time[];
+extern int numberSamples;
+extern void Flag_Set2();
+extern Sampling ldr;
+extern DigitalOut led1; 
+extern DigitalOut led2;
 
-
-bool connect();
-void disconnect();
-bool setTime();
-void iothubrecord();
-void sendzure(int l, float t, float p);
-extern void AzureSP_check(int x, char y, char z);
-
+//functions
+bool connect(); // function to connect to network 
+void disconnect(); //  function to disconnect
+bool setTime(); //  function to set time
+void iothubrecord(); 
+void sendzure(int l, float t, float p); // function to update child class alarm set points
+extern void AzureSP_check(int x, char y, char z); // interlinking function to update child class alarm set points. 
 
 #endif
