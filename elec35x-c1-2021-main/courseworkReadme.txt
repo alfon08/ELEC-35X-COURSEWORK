@@ -1,4 +1,4 @@
-Task 1: Achieved.the device reads light level using the LDR and temperature and pressure using the BMP.
+Task 1 (Ryan): Achieved.The device reads light level using the LDR and temperature and pressure using the BMP.
     All the data is encapsulated in Sampling.hpp file. The private data includes a structure with the 
     three samples. In private, there is also included the AnalogIn for the LDR, the EnvSensor to use the
     environmental sensor and a sample counter to count the samples measured. In public, a char which will
@@ -10,18 +10,25 @@ Task 1: Achieved.the device reads light level using the LDR and temperature and 
     Sampling is performed in the highest priority thread.
 
 
-Task 3: Achieved. buffer.hpp includes the class with all the needed functionality for the FIFO buffer.
+Task 2 (Ryan): Achieved. Date time and sensor data is written to text file to the SD card. Code in sd.cpp
+
+
+Task 3 (Ryan): Achieved. buffer.hpp includes the class with all the needed functionality for the FIFO buffer.
    buffer.cpp includes the function to write to the buffer and some other functions for other tasks
    (explained in the other tasks).
 
 
-Task 4: Achieved 
+Task 4 (Ryan and Anwar): Achieved.
 
-Task 5: 
+Task 5 (Everyone): Achieved. This project is composed of 5 threads. The thread with the highest priority is t1 which is
+   the thread sampling. The other threads all have the same priority. t2 controls the buffer, t3 writes to 
+   the SD card, t4 comunicates with iotazure and t5 controls the graph in the LED matrix. Event queues are used
+   extensively for ease of operation and to mess with time synchronicity. signal waits have also been used for this to
+   allow for threads to work one after the other when they are called respectively.
 
-Task 6:
+Task 6 (Everyone): Achieved. Spin-locks justified in the code
 
-Task 7:Achieved. net.cpp includes the fucntions to send data to azure and to react to some commands. 
+Task 7 (Ryan and Alfonso):Achieved. net.cpp includes the fucntions to send data to azure and to react to some commands. 
    Four string commands are needed in github.
    Plot: performs the task including the LED matrix and the functions latest, buffered and flush
    LightAlarmSP: sets the new thresholds for the light level
@@ -30,11 +37,28 @@ Task 7:Achieved. net.cpp includes the fucntions to send data to azure and to rea
    For the thresholds, send from azure h and the integer wanted (without spaces or symbols) for the high 
    threshold and l and the integer for low threshold.
 
-Task 8: Achieved. Send date and time to azure
+Task 8 (Ryan and Alfonso): Partially chieved. Send date, time and sensor measurements to azure. Sensor measurements are ploted in
+   graphs using telemetry in azure. It doesnt host information on an internal web page.
 
-Task 9: Achieved.
+Task 9 (Everyone): Achieved.
 
-Task 10:
+Task 10 (Anwar): achieved. although timeouts and other methods may have been preffered, the way we had implemented our code with no
+Mutex locks or writing to shared variables, it did not seem feasible to use them. so we opted for a watchdog. It is started in main
+for 30 seconds, so if it's not kicked wihting that time, we know the system is hanging so it resents. in the buffer, if we get a 
+critical error, it resets the timer and after 30 seconds, the whole program resets as specified.
 
-Task 11: in the plot command from azure, writting a L, a T or a P will select the graph displayed in the 
-   LED matrix. L: light, T:Temperature, P: Pressure
+Task 11 (Ryan and Alfonso): in the plot command from azure, writting a L, a T or a P will select the graph displayed in the 
+   LED matrix. L: light, T:Temperature, P: Pressure. Code in matrix.cpp, matrix.hpp and main (thread 6)
+
+
+Task 12 (Everyone): Achieved. Everything commented, indented and structured accordignly
+
+
+Due to complications related SD and one we were unaware how to resolve, we figure out a certain way the Sd card and code is uploaded before it can work. it goes as follows :
+1. Compile and run the code
+2. Remove the SD card and reset the nucleo using the black reset button
+3. Insert the SD card and reset the nucleo again
+
+
+Azure information: In Azure we created 3 capabilities. 3 tlemetry: Light Level, Temperature and Pressure
+4 commands: Plot, LightAlarmSP, TemperatureAlarmSP and PressureAlarmSP
