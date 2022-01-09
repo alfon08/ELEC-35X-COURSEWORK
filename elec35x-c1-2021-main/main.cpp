@@ -2,41 +2,35 @@
  * Copyright (c) 2020 Arm Limited
  * SPDX-License-Identifier: Apache-2.0
  */
- 
-#include "mbed.h"   //this has the watchdog function in it
-#include "uop_msb.h"
-#include "rtos/ThisThread.h"
-#include <cstdio>
-#include <cstring>
-#include <string.h>
-#include "Sampling.hpp"
-#include <ctype.h>
-#include "buffer.hpp"
-#include "SDBlockDevice.h"
-#include <iostream>
-#include "sd.hpp"
-#include "net.hpp"
-#include "matrix.hpp"
+#include "main.hpp"
+
+//System paramters:
+Mail<buffer, 16> mail_box;                  //buffer holds 16 of type buffer
+int SDwriteFreq = 16;                       //writes to SD card afer x number of samples
 
 //interrupts
 InterruptIn Bluebtn(USER_BUTTON);           //used for printing out what is in the SD card
 InterruptIn btnA(BTN1_PIN);                 //used for printing out what is in the SD card
 InterruptIn CIEbutton (BTN2_PIN);
 
+//Class ints
 Sampling Samp(AN_LDR_PIN);                  // constructor for setting up Sampling
 buffer mes(0, 0, 0.0, 0.0);                 // constructor for setting up the buffer
+Buzzer alarmm;
+DigitalInOut redLed2 (TRAF_RED2_PIN);
 LCD_16X2_DISPLAY disp;
-Mail<buffer, 16> mail_box;                  //buffer holds 16 of type buffer
-int SDwriteFreq = 16;                       //writes to SD card afer x number of samples
+bool SPUpdate = false;
+char y = NULL;                               //matrix array set to light by default
+microseconds tmrUpdate = 0ms;               //time to compare 
+EventQueue mainQueue;
+matrix_bar start;
 
-int numberSamples = 0;
 //Timers and clock related variables
 Ticker Samptick;                            //ISR for triggering sampling
 Timer updatetmr;                            //Timer for triggering update 
 microseconds sampRate = 100ms;              //sampling Rate
 const uint32_t RESET_TIME = 30000;          //30 sec countdown for watchdog
-//mutex
-Mutex mutex;
+int numberSamples = 0;
 
 //Threads
 Thread t1(osPriorityAboveNormal);           //Sampling Thread 
@@ -46,27 +40,116 @@ Thread t4(osPriorityNormal);                //IOTHub Thread
 Thread t5(osPriorityNormal);                //critical error thread
 Thread t6(osPriorityNormal);                //matric thread
 
+//                                    THREADS                                                  
 
-DigitalInOut redLed2 (TRAF_RED2_PIN);
-volatile int CErrorcount ;                  //critical error count
+//Thread 1
+void GetSample(){
+        while(true){
+            ThisThread::flags_wait_any(1);            //Triggered by SampTick via flagset function
+            ThisThread::flags_clear(1);               // clear flags
+            Samp.Sample();                            //function to take samples and accumulate values
+            tmrUpdate = updatetmr.elapsed_time();     //read value of timer
+                if(tmrUpdate > 9000ms){               //update every 9 seconds - just less than every 10s. 
+                    updatetmr.reset();                // resets timer
+                    t2.flags_set(1);                  // sets flag for buffer
+                }
+        }
+}       
 
+//Thread 2
+void bufferSample(){
+    int i =0;                                            //counter integer for buffer to sd write
+            while(true){
+                ThisThread::flags_wait_any(1);          //Triggered by signal from getsample thread
+                ThisThread::flags_clear(1);             // clear flags
+                Samp.UpdateSample();                    //Take average of samples data and update previous readings
+                Watchdog::get_instance().kick();        //kick watchdog
+                                                        //check for space and allocate:
+                mes.SpaceAllocate(Samp.Samptime_date, Samp.dataAVG.ldrEngAVG, Samp.dataAVG.TempAVG, Samp.dataAVG.PressAVG);
+                                                        //Check alarm setpoints against readings
+                mes.checkvalues(Samp.dataAVG.ldrEngAVG, Samp.dataAVG.TempAVG, Samp.dataAVG.PressAVG); 
+                                                        //update matrix arrays buffer
+                mes.updatearrays(Samp.dataAVG.ldrEngAVG, Samp.dataAVG.TempAVG, Samp.dataAVG.PressAVG);
+                t4.flags_set(1);                        // set flag for updating data on IOTHub
+                i = ++i;                                // increement counter
+                numberSamples++;                        // numberSamples counter used for counting buffer
+                    if(i == (SDwriteFreq)){             // if counter is equal to specified total stored samples write to sd
+                        bool empt = mail_box.empty();   //blocks if buffer is empty
+                            if(!empt){                  // if not empty semephore
+                                t3.flags_set(1);        //send signal to SD card thread
+                                i = 0;                  // reset counter integer
+                                numberSamples = 0;      //reset number of samples
+                            }
+                    }
+                }
+}
 
-Buzzer alarmm;
-extern int Lightarray[8];
-extern float Temparray[8];
-extern float Pressarray[8];
-extern bool LHAlarmset;
-extern bool LLAlarmset;
-extern bool TLAlarmset;
-extern bool PLAlarmset;
-extern int iotLight;
-bool SPUpdate = false;
-char y = NULL;                               //matrix array set to light by default
-microseconds tmrUpdate = 0ms;               //time to compare 
-EventQueue mainQueue;
-extern void BuzzStop();
+//Thread 4
+void iotazure(){ 
+    while(true){
+            iothubrecord(); // iothub function
 
+    }
+}
 
+//Thread 6
+void matrix_display() { //function for displaying quantised values on matrix
+    matrix_bar start; // init matrix - create chilc class called start
+    start.clearMatrix(); // clear matrix
+    disp.cls(); // clear LED display
+        while(true){
+            disp.locate(1, 0); // locate LED
+            disp.printf("Display=%c\n",y);
+                
+                if(y == 'L'){
+                    for(int i= 0; i<=7; i++){
+                        start.BarLight(Lightarray[i], i);
+                    }
+                }
+
+                if(y == 'T'){
+                    for(int i= 0; i<=7; i++){
+                        start.BarTemp(Temparray[i], i);
+                    }
+                }
+
+                if(y == 'P'){
+                    for(int i= 0; i<=7; i++){
+                        start.BarPres(Pressarray[i], i);
+                    }
+                }
+        }
+}
+
+//                                  MAIN                                                
+
+int main() {
+    
+        //set traf light 2
+        redLed2.output(); 
+        redLed2.mode(PinMode::OpenDrainNoPull);
+        redLed2 = 1;                                    //as open drain, set to 0 keep off
+        if (!connect()) return -1;                      // obtain network connection
+        if (!setTime()) return -1;                      // obtain time and update RTC
+        SDCardSetup();                                  // Sets up SD card
+        btnA.rise(&Queue_Read);                         // ISR for button A which reads SD card
+        Bluebtn.rise(&BuzzStop);                        // ISR to cancel buzzer for 1 minute
+        t1.start(GetSample);                            // sampling thread start
+        t2.start(bufferSample);                         // buffer thread start
+        t3.start(SDCardWrite);                          // sd card thread start
+        t4.start(iotazure);                             // iothub thread start
+        t6.start(matrix_display);                       // matric thread start
+        Watchdog &watchdog = Watchdog::get_instance();  // get instance of watchdog
+        watchdog.start(RESET_TIME);                     // start watchdog timer
+        Samptick.attach(&Flag_Set, sampRate);           // ISR for control of sample rate
+        updatetmr.start();                              // timer for buffer write
+        
+            while (true) {
+                mainQueue.dispatch_forever();            // main Queue for serial message management
+            }
+};
+
+//                            Flagset and other connecting functions
 
 void Flag_Set(){                            // Sets the flag to start sampling
      t1.flags_set(1);}
@@ -77,142 +160,9 @@ void Flag_Set2(){                           // function to start SD card write
 void Flag_Set3(){                           // function to start the matrix thread
      t6.flags_set(1);}
 
-//Thread 1
-void GetSample(){
-        while(true){
-            ThisThread::flags_wait_any(1); 
-            ThisThread::flags_clear(1); 
-            Samp.Sample();                  //function to take samples and accumulate values
-            tmrUpdate = updatetmr.elapsed_time(); //read value of timer
-                if(tmrUpdate > 9000ms){     //update every 9 seconds - just less than every 10s. 
-                    updatetmr.reset();      // resets timer
-                    t2.flags_set(1);        // sets flag for buffer
-                                    }
-                     }
-                }       
-
-//Thread 2
-void bufferSample(){
-    char time_date[32]; 
-    int i =0;                               //counter integer for buffer to sd write
-            while(true){
-                ThisThread::flags_wait_any(1); 
-                ThisThread::flags_clear(1);
-                //Take average of samples data and update previous readings
-                Samp.UpdateSample();
-                //mainQueue.call(printf, "data recorded in buffer at %s", ldr.Samptime_date);
-                //Record average samples in buffer
-                Watchdog::get_instance().kick();    //one last kick if it is needed, just uncomment
-                mes.SpaceAllocate(Samp.Samptime_date, Samp.dataAVG.ldrEngAVG, Samp.dataAVG.TempAVG, Samp.dataAVG.PressAVG);//Allocate date, ldr, temp and pres in the buffer
-                mes.checkvalues(Samp.dataAVG.ldrEngAVG, Samp.dataAVG.TempAVG, Samp.dataAVG.PressAVG); //Check if they are above or below limits->WARNING
-                mes.updatearrays(Samp.dataAVG.ldrEngAVG, Samp.dataAVG.TempAVG, Samp.dataAVG.PressAVG);
-                t4.flags_set(1);            // set flag for updating data on IOTHub
-                i = ++i;                    // increement counter
-                numberSamples++;
-                    if(i == (SDwriteFreq)){ // if counter is equal to specified total stored samples write to sd
-                        bool empt = mail_box.empty(); //blocks if buffer is empty
-                            if(!empt){      // if not empty
-                                t3.flags_set(1); //send signal to SD card thread
-                                i = 0;      // reset counter integer
-                                numberSamples = 0;  //reset number of samples
-                                    }
-                                          }
-                     }                
-
-                }
-
-void AzureSP_check(int x, char y, char z){
-    if(LHAlarmset == true){
-        mes.azureSetpoint(x, y, z);
-        LHAlarmset = false;
-
-    }
-    if(LLAlarmset == true){
-        mes.azureSetpoint(x, y, z);
-        LLAlarmset = false;
-    }
-
+void AzureSP_check(int x, char y, char z){  //function recieves alarm setpoint and L/T/P and H/L
+        mes.azureSetpoint(x, y, z); //updates values within child class
 }
-
-//Thread 4
-void iotazure(){ 
-    while(true){
-                    iothubrecord(); // iothub function
-
-    }
-}
-
-//Thread 6
-void matrix_display() {
-    matrix_bar start;
-    start.clearMatrix();
-    disp.cls();
-    disp.locate(1, 0);
-    while(true){
-    disp.locate(1, 0);
-    disp.printf("Display=%c\n",y);
-        if(y == 'L'){
-            for(int i= 0; i<=7; i++){
-            start.BarLight(Lightarray[i], i);
-        }}
-        if(y == 'T'){
-            for(int i= 0; i<=7; i++){
-            start.BarTemp(Temparray[i], i);
-            }}
-        if(y == 'P'){
-            for(int i= 0; i<=7; i++){
-            start.BarPres(Pressarray[i], i);
-        }}}
-}
-
-
-void critErrbtnISR (){          //interrupt service routine for the switch at PG_1
-    CIEbutton.rise(NULL);
-    t5.flags_set(2);            //trying to keep the interrupt short as possible and 
-                                //let function do the work
-}
-
-                
-
-int main() {
-    
-    /*ISR button */
-        CIEbutton.rise(critErrbtnISR);           //button A AT PG0
-        //set traf light 2
-        redLed2.output();
-        redLed2.mode(PinMode::OpenDrainNoPull);
-        redLed2 = 1;           //as open drain, set to 0 keep off
-
-    if (!connect()) return -1; // obtain network connection
-    if (!setTime()) return -1; // obtain time and update RTC
-        matrix_bar start;
-        SDCardSetup();          // Sets up SD card
-        btnA.rise(&Queue_Read); // ISR for button A which reads SD card
-        //Bluebtn.rise(&buzzstopISR);// ISR to cancel buzzer for 1 minute
-        t1.start(GetSample);    // sampling thread start
-        //t1.join();
-        t2.start(bufferSample); // buffer thread start
-        //t2.join();        //waiting for each thread to finish 
-        t3.start(SDCardWrite);  // sd card thread start
-        //t3.join();
-        t4.start(iotazure);     // iothub thread start
-        //t5.start(CritError);    // reset thread  - probably dont eed this
-        t6.start(matrix_display);               // matric thread start
-
-        Watchdog &watchdog = Watchdog::get_instance();  // get instance of watchdog
-        watchdog.start(RESET_TIME);                     // start watchdog timer
-        //and outer watchdog also set to 30 seconds so if there is something that hangs the problem for more than 30 seconds we restart whole main
-
-        Samptick.attach(&Flag_Set, sampRate);   // ISR for control of sample rate
-        updatetmr.start();                      //timer for buffer write
-        
-    while (true) {
-       mainQueue.dispatch_forever();            // main Queue for serial message management
-    }
-
-};
-
-
 
 
 
