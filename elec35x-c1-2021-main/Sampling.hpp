@@ -15,7 +15,8 @@ private:                //Private Properties
 struct Sample{
 unsigned int _ldrEng; 
 float _Temp;            //internal usage data for samples taken
-float _Press;}data;
+float _Press;
+}data;
 
 AnalogIn _ldr;          //ldr sensor
 EnvSensor BMP280;       // environment sensor
@@ -30,7 +31,9 @@ struct Samps{
 unsigned int ldrEngAVG; //Average Engineering Value over x samples
 float TempAVG;
 float PressAVG;
-char Date_Time[32];}dataAVG;
+char Date_Time[32];
+}dataAVG;
+
 int tdsec;
 
 void Sample ();        // sample function

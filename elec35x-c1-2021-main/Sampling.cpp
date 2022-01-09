@@ -18,7 +18,7 @@ void Sampling::Sample (){               // function to take samples
                 samplesupdated = false; // reset for next update
             }
             //no need for mutex locks, unneccessary and adds overhead
-            data._ldrEng += _ldr.read_u16();        // read ldr sensor and add to previos within data structure
+            data._ldrEng += _ldr.read_u16();        // read ldr sensor and add to previous within data structure
             data._Temp += BMP280.getTemperature();  // read temp sensor and add to previous within data structure
             data._Press += BMP280.getPressure();    // read press sensor and add to previous within data structre
             samples = ++samples;                    // count how many samples

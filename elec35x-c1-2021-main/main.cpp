@@ -219,7 +219,7 @@ int main() {
         t3.start(SDCardWrite);  // sd card thread start
         //t3.join();
         t4.start(iotazure);     // iothub thread start
-        t5.start(CritError);    // reset thread  - probably dont eed this
+        //t5.start(CritError);    // reset thread  - probably dont eed this
         t6.start(matrix_display);               // matric thread start
 
         Watchdog &watchdog = Watchdog::get_instance();  // get instance of watchdog
