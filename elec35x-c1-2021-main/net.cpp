@@ -155,7 +155,7 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
     int bufcount = 0;
     int flucount = 0;
 
-    if((method_name = "Plot")){
+    if(method_name[0] == 'C'){
     for(int i = 0; i < size; i++){
          char letter = payload[i];
         if (letter == 'L'){
@@ -197,7 +197,7 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
         }
     }
     }
-    if((method_name = "LightAlarmSP")){
+    if(method_name[0] == 'L'){
         int num= 0;
         int AlarmSP = 0;
         if(payload[1] == 'l'){
@@ -220,7 +220,7 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
         sprintf(RESPONSE_STRING, "{ \"AlarmRes\" : \"High Alarm setpoint to %d\"}", AlarmSP);
         }
     }
-    if((method_name = "TemperatureAlarmSP")){
+    if((method_name[0] == 'T')){
         int num1= 0;
         int AlarmSP1 = 0;
         if(payload[1] == 'l'){
@@ -243,7 +243,7 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
         sprintf(RESPONSE_STRING, "{ \"AlarmRes\" : \"High Alarm setpoint to %d\"}", AlarmSP1);
         }
     }
-    if((method_name = "PressureAlarmSP")){
+    if((method_name[0] == 'P')){
         int num2= 0;
         int AlarmSP2 = 0;
         if(payload[1] == 'l'){

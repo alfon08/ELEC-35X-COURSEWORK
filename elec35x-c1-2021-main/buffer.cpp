@@ -80,30 +80,41 @@ void buffer::checkvalues (int l, float T, float P){              // Take values 
     if(ldrVal <= ldralarm_low) {                                 // set high and low using OR condition to encapsulate boundary
         alarm.playTone("C", Buzzer::LOWER_OCTAVE);               // play buzzer to notify threshold breached
         mainQueue.call(printf,"Light Level Low Warning!!\n");    // message added to queue to print when pointer points to it
-        //    t5.flag_set(2);                                    // if threshold breached
+       
     }
 
     if(ldrVal >= ldralarm_high){    //set high and low using or condition to encapsulate boundary
         alarm.playTone("C", Buzzer::HIGHER_OCTAVE);              // play buzzer to notify threshold breached
         mainQueue.call(printf,"Light Level High Warning!!\n");   // message added to queue to print when pointer points to it
-        //    t5.flag_set(2);                                    // if threshold breached
+        
     }
 
-    if(TempVal >= tempalarm_high | TempVal <= tempalarm_low){
+    if(TempVal >= tempalarm_high){
         alarm.playTone("C", Buzzer::LOWER_OCTAVE);
-        mainQueue.call(printf,"Temperature Level Warning!!\n");
-        //    t5.flag_set(2);                                    // so if we want to test these, CERRorcount reduce to  3 and that way, if these get called, alarm will go of and reset the whole thing
+        mainQueue.call(printf,"Temperature high Level Warning!!\n");
+        
     }
 
-    if(PressVal >= pressalarm_high | PressVal <= pressalarm_low){
+     if(TempVal <= tempalarm_low){
         alarm.playTone("C", Buzzer::LOWER_OCTAVE);
-        mainQueue.call(printf,"Pressure Level Warning!!\n");
-        //    t5.flag_set(2);
+        mainQueue.call(printf,"Temperature low Level Warning!!\n");
+        
+    }
+
+    if(PressVal >= pressalarm_high){
+        alarm.playTone("C", Buzzer::LOWER_OCTAVE);
+        mainQueue.call(printf,"Pressure low Level Warning!!\n");
+        
+    }
+
+    if(PressVal <= pressalarm_low){
+        alarm.playTone("C", Buzzer::LOWER_OCTAVE);
+        mainQueue.call(printf,"Pressure high Level Warning!!\n");
+        
     }
     buzzT.reset();                                               // reset buzzer so it doesns't ring continuously
     if (SilenceT > 60s){                                         // allow cancellation of alarm multiple times
-        (AckPress == false);}                                    // reset blue button status so can be pressed more than once to turn off alarm
-
+        (AckPress = false);}                                    // reset blue button status so can be pressed more than once to turn off alarm
     }
 }
 void buffer::updatearrays(int l, float T, float P){

@@ -61,7 +61,7 @@ extern bool TLAlarmset;
 extern bool PLAlarmset;
 extern int iotLight;
 bool SPUpdate = false;
-char y = 'L';                               //matrix array set to light by default
+char y = NULL;                               //matrix array set to light by default
 microseconds tmrUpdate = 0ms;               //time to compare 
 EventQueue mainQueue;
 extern void BuzzStop();
@@ -102,6 +102,7 @@ void bufferSample(){
                 Samp.UpdateSample();
                 //mainQueue.call(printf, "data recorded in buffer at %s", ldr.Samptime_date);
                 //Record average samples in buffer
+                Watchdog::get_instance().kick();    //one last kick if it is needed, just uncomment
                 mes.SpaceAllocate(Samp.Samptime_date, Samp.dataAVG.ldrEngAVG, Samp.dataAVG.TempAVG, Samp.dataAVG.PressAVG);//Allocate date, ldr, temp and pres in the buffer
                 mes.checkvalues(Samp.dataAVG.ldrEngAVG, Samp.dataAVG.TempAVG, Samp.dataAVG.PressAVG); //Check if they are above or below limits->WARNING
                 mes.updatearrays(Samp.dataAVG.ldrEngAVG, Samp.dataAVG.TempAVG, Samp.dataAVG.PressAVG);
@@ -122,13 +123,11 @@ void bufferSample(){
 
 void AzureSP_check(int x, char y, char z){
     if(LHAlarmset == true){
-        printf("\n .1\n");
         mes.azureSetpoint(x, y, z);
         LHAlarmset = false;
 
     }
     if(LLAlarmset == true){
-        printf("\n .2 %i\n", x);
         mes.azureSetpoint(x, y, z);
         LLAlarmset = false;
     }
@@ -145,7 +144,6 @@ void iotazure(){
 
 //Thread 6
 void matrix_display() {
-    //Watchdog::get_instance().kick();    //one last kick if it is needed, just uncomment
     matrix_bar start;
     start.clearMatrix();
     disp.cls();
@@ -167,27 +165,6 @@ void matrix_display() {
         }}}
 }
 
-// * thread 5 *
-/*void CritError(){   
-    ThisThread::flags_wait_any(2); //block until this flag is set
-    ThisThread::sleep_for(50ms);    //switch bounce to stabilise
-    ThisThread::flags_clear(2);    //clear flag incase there were any due to switch bounce
-    CErrorcount++;
-
-    if (CErrorcount >=4) {
-        CriticalSectionLock::enable();  //lock so no interrupts can interrupt it as ticker is an interrupt
-        printf ("critical error has occured. system will restart in 30 seconds");
-        alarmm.playTone("C", Buzzer::LOWER_OCTAVE);      //if this doesn't work, probs just need to be initilised here to extern it as its in other file
-        redLed2=0;                                       //turn on red led
-        //CErrorcount=0;
-        Watchdog &watchdog = Watchdog::get_instance();
-        watchdog.start(RESET_TIME);              //starts watchdog timer for 30 sec. whole system resets after time is over
-        //CIEbutton.waitforpress();              //block by waiting for press
-        CriticalSectionLock::disable();
-        //sleep();
-    }
-
-}*/
 
 void critErrbtnISR (){          //interrupt service routine for the switch at PG_1
     CIEbutton.rise(NULL);
@@ -210,7 +187,7 @@ int main() {
     if (!setTime()) return -1; // obtain time and update RTC
         matrix_bar start;
         SDCardSetup();          // Sets up SD card
-        btnA.rise(&Queue_Read); // ISR for blue button which reads SD card
+        btnA.rise(&Queue_Read); // ISR for button A which reads SD card
         //Bluebtn.rise(&buzzstopISR);// ISR to cancel buzzer for 1 minute
         t1.start(GetSample);    // sampling thread start
         //t1.join();
