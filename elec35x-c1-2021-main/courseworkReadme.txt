@@ -10,7 +10,9 @@ Task 1 (Ryan): Achieved.The device reads light level using the LDR and temperatu
     Sampling is performed in the highest priority thread.
 
 
-Task 2 (Ryan): Achieved. Date time and sensor data is written to text file to the SD card. Code in sd.cpp
+Task 2 (Ryan): Achieved. Date time and sensor data is written to text file to the SD card. Code in sd.cpp.
+    We added a function to read the SD card when you press switch A in the support board to be able to 
+    check it if needed.
 
 
 Task 3 (Ryan): Achieved. buffer.hpp includes the class with all the needed functionality for the FIFO buffer.
@@ -63,3 +65,9 @@ It goes as follows :
 
 Azure information: In Azure we created 7 capabilities. 3 tlemetry: Light Level, Temperature and Pressure
 4 commands: Command, LightAlarmSP, TemperatureAlarmSP and PressureAlarmSP
+
+
+Bugs and errors occured during testing:
+(Alfonso): After around 7-8 minutes of working fine, I noticed in azure and with the temperature warnings that the temperature was rising fast until it
+got to 200. I tried to print the values in the sd card using the A button in the support board and there wasnt any values coming from it. After that azure
+ stops getting values from the board and the device fails. 
