@@ -5,8 +5,8 @@
 #include "main.hpp"
 
 //System paramters:
-Mail<buffer, 16> mail_box;                  //buffer holds 16 of type buffer
-int SDwriteFreq = 16;                       //writes to SD card afer x number of samples
+Mail<buffer, 63> mail_box;                  //buffer holds 16 of type buffer
+int SDwriteFreq = 62;                       //writes to SD card afer x number of samples
 
 //interrupts
 InterruptIn Bluebtn(USER_BUTTON);           //used for printing out what is in the SD card

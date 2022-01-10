@@ -56,7 +56,7 @@ class buffer {
 };
 
 //External:
-extern Mail<buffer, 16> mail_box; // brings in mailbox which can be seen at main
+extern Mail<buffer, 63> mail_box; // brings in mailbox which can be seen at main
 extern EventQueue mainQueue;      // queues onto main queue for sequencial order
 extern Watchdog &watchdog;
 extern Thread t4;           // IOT thread for usage
