@@ -51,7 +51,7 @@ Task 7 (Ryan and Alfonso):Achieved. net.cpp includes the functions to send data 
 
    
 
-Task 8 (Ryan and Alfonso): Partially chieved. Send date, time and sensor measurements to azure. Sensor measurements are ploted in
+Task 8 (Ryan and Alfonso): Partially achieved. Send date, time and sensor measurements to azure. Sensor measurements are ploted in
    graphs using telemetry in azure. It doesnt host information on an internal web page.
 
 Task 9 (Everyone): Achieved.
@@ -72,7 +72,7 @@ Task 12 (Everyone): Achieved. Everything commented, indented and structured acco
 ####################################################### IMPORTANT FOR TESTING ######################################################
 
 Due to complications related SD and one we were unaware how to resolve, we figure out a certain way the Sd card and code is uploaded
- before it can work. 
+before it can work. 
 It goes as follows :
 1. Compile and run the code
 2. Remove the SD card and reset the nucleo using the black reset button
