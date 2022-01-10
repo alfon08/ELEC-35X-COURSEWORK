@@ -140,16 +140,16 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
                 if (letter == 'b' | letter == 'u' | letter == 'f'| letter == 'e'| letter == 'r'){
                     bufcount = bufcount +1;
                         if (bufcount == 6){// counts to 6 to check for all letters
-                            sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"SamplesBuffer %d \"}", numberSamples); //send the number of samples to IOT
-                            mainQueue.call(printf,"Number of samples in the buffer = %i\n", numberSamples); //print the number of samples in the buffer
+                            sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"SamplesBuffer %d \"}", numberSamples);
+                            mainQueue.call(printf,"Number of samples in the buffer = %i", numberSamples);
                         }
                     }
                 if (letter == 'f' | letter == 'l' | letter == 'u' | letter == 's' | letter == 'h'){
                     flucount = flucount +1;
                         if (flucount == 5){ // counts to 6 to check for all letters
-                            sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"Buffer emptied\"}" );//send response to IOT
-                            mainQueue.call(printf,"Buffer emptied\n"); 
-                            Flag_Set2();// function to start SD card write
+                            sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"Buffer emptied\"}" );
+                            mainQueue.call(printf,"Buffer emptied\n");
+                            Flag_Set2();
                             numberSamples = 0; //Write to the SD card empties the buffer
                         }
                     }

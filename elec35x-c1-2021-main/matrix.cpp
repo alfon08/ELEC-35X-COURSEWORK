@@ -93,7 +93,7 @@ void matrix_bar::BarLight (int data, int row){
     if(data >=49000 && data< 52500){ // 15 LEDs on
         numberLED(0xFF, 0x7F, row);
     }
-    if(data >=56000){ // 16 LEDs on
+    if(data >=56000){ // 15 LEDs on
         numberLED(0xFF, 0xFF, row);
     }
 }
@@ -147,7 +147,7 @@ void matrix_bar::BarTemp (float data, int row){
     if(data >=35 && data< 37.5){ // 15 LEDs on
         numberLED(0xFF, 0x7F, row);
     }
-    if(data >=37.5){ // 16 LEDs on
+    if(data >=37.5){ // 15 LEDs on
         numberLED(0xFF, 0xFF, row);
     }
 }
@@ -202,7 +202,7 @@ void matrix_bar::BarPres (float data, int row){
     if(data >=1050 && data< 1100){ // 15 LEDs on
         numberLED(0xFF, 0x7F, row);
     }
-    if(data >=1100){ // 16 LEDs on
+    if(data >=1100){ // 15 LEDs on
         numberLED(0xFF, 0xFF, row);
     }
 }

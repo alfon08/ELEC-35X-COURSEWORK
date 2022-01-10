@@ -5,13 +5,14 @@
 #include "main.hpp"
 
 //System paramters:
-Mail<buffer, 63> mail_box;                  //buffer holds 16 of type buffer
-int SDwriteFreq = 62;                       //writes to SD card afer x number of samples
+Mail<buffer, 16> mail_box;                  //buffer holds 16 of type buffer
+int SDwriteFreq = 9;                       //writes to SD card afer x number of samples
+microseconds sampRate = 100ms;              //sampling Rate
 
 //interrupts
-InterruptIn Bluebtn(USER_BUTTON);           //used for printing out what is in the SD card
+InterruptIn Bluebtn(USER_BUTTON);           //used for acknowlegde alarm
 InterruptIn btnA(BTN1_PIN);                 //used for printing out what is in the SD card
-InterruptIn CIEbutton (BTN2_PIN);
+
 
 //Class ints
 Sampling Samp(AN_LDR_PIN);                  // constructor for setting up Sampling
@@ -28,7 +29,7 @@ matrix_bar start;
 //Timers and clock related variables
 Ticker Samptick;                            //ISR for triggering sampling
 Timer updatetmr;                            //Timer for triggering update 
-microseconds sampRate = 100ms;              //sampling Rate
+
 const uint32_t RESET_TIME = 30000;          //30 sec countdown for watchdog
 int numberSamples = 0;
 
@@ -37,7 +38,6 @@ Thread t1(osPriorityAboveNormal);           //Sampling Thread
 Thread t2(osPriorityNormal);                //Buffer Thread
 Thread t3(osPriorityNormal);                //SD card Thread
 Thread t4(osPriorityNormal);                //IOTHub Thread
-Thread t5(osPriorityNormal);                //critical error thread
 Thread t6(osPriorityNormal);                //matric thread
 
 //                                    THREADS                                                  
@@ -96,11 +96,7 @@ void iotazure(){
 void matrix_display() { //function for displaying quantised values on matrix
     matrix_bar start; // init matrix - create chilc class called start
     start.clearMatrix(); // clear matrix
-    disp.cls(); // clear LED display
-        while(true){
-            disp.locate(1, 0); // locate LED
-            disp.printf("Display=%c\n",y);
-                
+        while(true){                
                 if(y == 'L'){
                     for(int i= 0; i<=7; i++){
                         start.BarLight(Lightarray[i], i);
@@ -156,9 +152,6 @@ void Flag_Set(){                            // Sets the flag to start sampling
 
 void Flag_Set2(){                           // function to start SD card write
      t3.flags_set(1);}
-
-void Flag_Set3(){                           // function to start the matrix thread
-     t6.flags_set(1);}
 
 void AzureSP_check(int x, char y, char z){  //function recieves alarm setpoint and L/T/P and H/L
         mes.azureSetpoint(x, y, z); //updates values within child class

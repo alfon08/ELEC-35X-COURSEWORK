@@ -73,12 +73,12 @@ void buffer::checkvalues (int l, float T, float P){              // Take values 
     if (AckPress == false){
         if(ldrVal <= ldralarm_low) {                                 // set high and low using OR condition to encapsulate boundary
             alarm.playTone("C", Buzzer::LOWER_OCTAVE);               // play buzzer to notify threshold breached
-            mainQueue.call(printf,"Light Level low Warning!!\n");    // message added to queue to print when pointer points to it
+            mainQueue.call(printf,"Light Level high Warning!!\n");    // message added to queue to print when pointer points to it (high light level - low eng value)
     }
 
     if(ldrVal >= ldralarm_high){    //set high and low using or condition to encapsulate boundary
         alarm.playTone("C", Buzzer::HIGHER_OCTAVE);              // play buzzer to notify threshold breached
-        mainQueue.call(printf,"Light Level high Warning!!\n");   // message added to queue to print when pointer points to it
+        mainQueue.call(printf,"Light Level low Warning!!\n");   // message added to queue to print when pointer points to it (low light level - high eng value)
     }
 
     if(TempVal >= tempalarm_high){
@@ -117,7 +117,6 @@ void buffer::updatearrays(int l, float T, float P){ //updates matrix array
         Lightarray[0] = l;
         Temparray[0] = T;                           // pass in the last value into the zeroeth position
         Pressarray[0] = P;
-        Flag_Set3();                                // set flag to start the matrix thread
 }
 
 void BuzzStop(){
