@@ -10,7 +10,7 @@ Task 1 (Ryan): Achieved.The device reads light level using the LDR and temperatu
     Sampling is performed in the highest priority thread.
 
 
-Task 2 (Ryan): Achieved. Date time and sensor data is written to text file to the SD card. Code in sd.cpp.
+Task 2 (Ryan): Partially achieved. Date time and sensor data is written to text file to the SD card. Code in sd.cpp.
     We added a function to read the SD card when you press switch A in the support board to be able to 
     check it if needed.
 
@@ -28,16 +28,28 @@ Task 5 (Everyone): Achieved. This project is composed of 5 threads. The thread w
    extensively for ease of operation and to mess with time synchronicity. Signal waits have also been used for this to
    allow for threads to work one after the other when they are called respectively.
 
-Task 6 (Everyone): Achieved. Spin-locks justified in the code
+Task 6 (Everyone): Achieved. 
 
 Task 7 (Ryan and Alfonso):Achieved. net.cpp includes the functions to send data to azure and to react to some commands. 
    Four string commands are needed in azure.
    Command: performs the task including the LED matrix and the functions latest, buffered and flush
+   For the LED matrix write in the command:
+   L : plots light level graph
+   T : plots temperature
+   P : plots pressure
+   For the other functions write:
+   latest
+   buffer
+   flush
+
+   For the other commands:
    LightAlarmSP: sets the new thresholds for the light level
    TemperatureAlarmSP: sets the new thresholds for the temperature
    PressureAlarmSP: sets the new thresholds for the pressure
    For the thresholds, send from azure h and the integer wanted (without spaces or symbols) for the high 
    threshold and l and the integer for low threshold.
+
+   
 
 Task 8 (Ryan and Alfonso): Partially chieved. Send date, time and sensor measurements to azure. Sensor measurements are ploted in
    graphs using telemetry in azure. It doesnt host information on an internal web page.
@@ -45,9 +57,10 @@ Task 8 (Ryan and Alfonso): Partially chieved. Send date, time and sensor measure
 Task 9 (Everyone): Achieved.
 
 Task 10 (Anwar): Achieved. Although timeouts and other methods may have been preffered, the way we had implemented our code with no
-Mutex locks or writing to shared variables, it did not seem feasible to use them, so we opted for a watchdog. It is started in main
-for 30 seconds, so if it's not kicked wihtin that time, we know the system is hanging so it resents. In the buffer, if we get a 
-critical error, it resets the timer and after 30 seconds, the whole program resets as specified.
+    Mutex locks or writing to shared variables, it did not seem feasible to use them, so we opted for a watchdog. It is started in
+    main for 30 seconds, so if it's not kicked wihtin that time, we know the system is hanging so it resents. In the buffer, if we 
+    get a critical error, it resets the timer and after 30 seconds, the whole program resets as specified.
+    
 
 Task 11 (Ryan and Alfonso): in the "Command" command from azure, writting a L, a T or a P will select the graph displayed in the 
    LED matrix. L: light, T:Temperature, P: Pressure. Code in matrix.cpp, matrix.hpp and main (thread 6)
@@ -56,7 +69,10 @@ Task 11 (Ryan and Alfonso): in the "Command" command from azure, writting a L, a
 Task 12 (Everyone): Achieved. Everything commented, indented and structured accordignly
 
 
-Due to complications related SD and one we were unaware how to resolve, we figure out a certain way the Sd card and code is uploaded before it can work. 
+####################################################### IMPORTANT FOR TESTING ######################################################
+
+Due to complications related SD and one we were unaware how to resolve, we figure out a certain way the Sd card and code is uploaded
+ before it can work. 
 It goes as follows :
 1. Compile and run the code
 2. Remove the SD card and reset the nucleo using the black reset button
@@ -67,7 +83,8 @@ Azure information: In Azure we created 7 capabilities. 3 tlemetry: Light Level, 
 4 commands: Command, LightAlarmSP, TemperatureAlarmSP and PressureAlarmSP
 
 
+######################################################### Bugs and Errors ##########################################################
 Bugs and errors occured during testing:
-(Alfonso): After around 7-8 minutes of working fine, I noticed in azure and with the temperature warnings that the temperature was rising fast until it
-got to 200. I tried to print the values in the sd card using the A button in the support board and there wasnt any values coming from it. After that azure
- stops getting values from the board and the device fails. 
+After certain amount of SD writes the values get corrupted.The bug is very noticeable in the temperature because it reaches 200 and raises 
+very quickly. The values in the light  samples we think they get corrupted too, but because of their size (around 30000) the error doesnt
+make a huge difference. 
