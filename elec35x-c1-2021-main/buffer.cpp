@@ -53,7 +53,7 @@ void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
         iotLight = l;                           //create some stack based local variables to hold data used later for iot purposes
         iotTemp = T;                            
         iotPress = P; 
-        if(Bufflock.trylock_for(5s)==true){                          
+        if(Bufflock.trylock_for(5s)==true){ //lock for protection
         osStatus stat = mail_box.put(message);  //send message
             if (stat != osOK) {                 //if message fails error is recorded
                         redLED = 1;                     //red light comes on
@@ -65,10 +65,10 @@ void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
             } 
             else{
                 greenLED = 1;                   // healthy light on if buffer write successful}
-                numberSamples = numberSamples +1;
-                numberSpaces = numberSpaces -1;
+                numberSamples = numberSamples +1; //counter for number of samples in buffer
+                numberSpaces = numberSpaces -1; // counter for number of spaces in buffer
             }
-            Bufflock.unlock();
+            Bufflock.unlock(); // release lock 
         }
 }
 

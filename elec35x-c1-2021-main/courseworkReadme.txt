@@ -102,10 +102,4 @@ Azure information: In Azure we created 7 capabilities. 3 tlemetry: Light Level, 
 4 commands: Command, LightAlarmSP, TemperatureAlarmSP and PressureAlarmSP 
 
 
-######################################################### Bugs and Errors ##########################################################
-Bugs and errors occured during testing:
-After certain amount of SD writes the values get corrupted.The bug is very noticeable in the temperature because it reaches 200 and raises 
-very quickly. The values in the light  samples we think they get corrupted too, but because of their size (around 30000) the error doesnt
-make a huge difference. We think this is due to the size of the file on the SD card and it searching all the way through it which interferes
-with the sampling. If sd card is never written this is fine. Possibly to improve this we could generate a new file on the brink of it getting
-too large which should iradicate this issue. 
+

@@ -35,7 +35,7 @@ void SDCardWrite(){
             sdc.deinit(); //  deinit sdc
             }   
         else {
-            sdreadtimer = pressed.elapsed_time();
+            sdreadtimer = pressed.elapsed_time(); // for sd card read switch debounce
             if(sdreadtimer >= 500ms){
                 press = true;
                 pressed.stop();
@@ -43,19 +43,16 @@ void SDCardWrite(){
             ThisThread::flags_wait_any(1); // wait for flag set by buffer thread
             ThisThread::flags_clear(1);// clear threads
             FILE *fp = fopen("/sd/test.txt","a"); //Open file to  write
-            if(!(numberSamples == 0)){
-                if(Bufflock.trylock_for(5s)==true){
+            if(!(numberSamples == 0)){ // blocks if buffer is empty
+                if(Bufflock.trylock_for(5s)==true){ // gets buffer lock
                     for(p = 0; p<(SDwriteFreq); p++){ // for loop to go through number of samples recorded
                         buffer* payload; // create instance of buffer
                         payload = mail_box.try_get(); // try to put payload size in mail box
                         buffer msg(payload->date_time, payload->ldr, payload->Temp, payload->Press); //create message for mailbox
                         mail_box.free(payload); // free payload
-                        numberSamples = numberSamples -1;
-                        numberSpaces = numberSpaces +1;
+                        numberSamples = numberSamples -1; //updates buffer samples
+                        numberSpaces = numberSpaces +1; // updates buffer space
                         fprintf(fp, "%s\t ldr value: %d\t Temp value: %.2f\t Press value: %.2f", msg.date_time, msg.ldr, msg.Temp, msg.Press); //Print date and time in sd
-                        //fprintf(fp, "ldr value: %d\t", msg.ldr); //print readings in sd
-                        //fprintf(fp, "Temp value: %.2f\t", msg.Temp);
-                        //fprintf(fp, "Press value: %.2f\t\n", msg.Press);
                     }
                 Bufflock.unlock();
                 mainQueue.call(printf, "sd card write complete\n"); // inform sd card complete

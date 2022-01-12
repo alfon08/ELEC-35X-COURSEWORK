@@ -25,7 +25,7 @@ private:                //Private Properties
 //Private Variables:
 AnalogIn _ldr;          //ldr sensor
 EnvSensor BMP280;       // environment sensor
-unsigned int samples;   // samples counter
+int samples = 0;   // samples counter
 
 
 public:                 //Constructor and Member functions
@@ -44,6 +44,9 @@ void UpdateSample();   // update samples function
 
 //constructor
 Sampling(PinName AnalogIn) :_ldr(AnalogIn){}
+
+protected:
+
 
 };
 

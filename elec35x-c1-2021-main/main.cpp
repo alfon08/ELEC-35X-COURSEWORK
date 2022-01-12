@@ -14,11 +14,13 @@ InterruptIn Bluebtn(USER_BUTTON);           //used for acknowlegde alarm
 InterruptIn btnA(BTN1_PIN);                 //used for printing out what is in the SD card
 
 
-//Class ints
+//Class intances
 Sampling Samp(AN_LDR_PIN);                  // constructor for setting up Sampling
 buffer mes(0, 0, 0.0, 0.0);                 // constructor for setting up the buffer
 Buzzer alarmm; //buzzer alarm which does not work
 DigitalInOut redLed2 (TRAF_RED2_PIN); //red led alarm
+
+int sampscount = 0;
 bool SPUpdate = false; //setpoint update partial semaphore 
 char y = NULL;                               //matrix array set to light by default
 microseconds tmrUpdate = 0ms;               //time to compare 
@@ -38,6 +40,7 @@ Thread t1(osPriorityAboveNormal);           //Sampling Thread
 Thread t2(osPriorityNormal);                //Buffer Thread
 Thread t3(osPriorityNormal);                //SD card Thread
 Thread t4(osPriorityNormal);                //IOTHub Thread
+
 Thread t6(osPriorityNormal);                //matric thread
 
 //                                    THREADS                                                  
@@ -48,10 +51,11 @@ void GetSample(){
             ThisThread::flags_wait_any(1);            //Triggered by SampTick via flagset function
             ThisThread::flags_clear(1);               // clear flags
             Samp.Sample();                            //function to take samples and accumulate values
-            tmrUpdate = updatetmr.elapsed_time();     //read value of timer
-                if(tmrUpdate > 9000ms){               //update every 9 seconds - just less than every 10s. 
-                    updatetmr.reset();                // resets timer
+            sampscount = sampscount +1;
+                if(sampscount == 100){               // 10 x 100ms = 10s update every 10s 
+                    Samp.UpdateSample(); //update samples every 10seconds
                     t2.flags_set(1);                  // sets flag for buffer
+                    sampscount = 0;
                 }
         }
 }       
@@ -62,7 +66,6 @@ void bufferSample(){
             while(true){
                 ThisThread::flags_wait_any(1);          //Triggered by signal from getsample thread
                 ThisThread::flags_clear(1);             // clear flags
-                Samp.UpdateSample();                    //Take average of samples data and update previous readings
                 Watchdog::get_instance().kick();        //kick watchdog
                                                         //check for space and allocate:
                 mes.SpaceAllocate(Samp.Samptime_date, Samp.dataAVG.ldrEngAVG, Samp.dataAVG.TempAVG, Samp.dataAVG.PressAVG);
@@ -91,7 +94,7 @@ void iotazure(){
     }
 }
 
-//Thread 6
+
 void matrix_display() { //function for displaying quantised values on matrix
     matrix_bar start; // init matrix - create chilc class called start
     start.clearMatrix(); // clear matrix
