@@ -134,6 +134,7 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
                 if (letter == 'l' | letter == 'a' | letter == 't'| letter == 'e'| letter == 's'){
                     count = count +1;
                         if (count == 6){ // counts to 6 to check for all letters
+                            mainQueue.call(printf,"Latest values sent check command history\n");
                             sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"Light %d, Temp %5.2f, Press %5.2f\"}", iotLight, iotTemp, iotPress);
                         }
                     }
@@ -141,7 +142,7 @@ static int on_method_callback(const char* method_name, const unsigned char* payl
                     bufcount = bufcount +1;
                         if (bufcount == 6){// counts to 6 to check for all letters
                             sprintf(RESPONSE_STRING, "{ \"cmd_res\" : \"SamplesBuffer %d \"}", numberSamples);
-                            mainQueue.call(printf,"Number of samples in the buffer = %i", numberSamples);
+                            mainQueue.call(printf,"Number of samples in the buffer = %d\n", numberSamples);
                         }
                     }
                 if (letter == 'f' | letter == 'l' | letter == 'u' | letter == 's' | letter == 'h'){

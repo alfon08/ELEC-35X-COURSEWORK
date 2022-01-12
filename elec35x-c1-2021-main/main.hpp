@@ -25,6 +25,8 @@ extern bool TLAlarmset;
 extern bool PLAlarmset;
 extern int iotLight;
 extern void BuzzStop();
+extern int numberSamples;
+extern int numberSpaces;
 
 
 void Flag_Set();

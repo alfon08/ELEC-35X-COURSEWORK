@@ -17,21 +17,21 @@ InterruptIn btnA(BTN1_PIN);                 //used for printing out what is in t
 //Class ints
 Sampling Samp(AN_LDR_PIN);                  // constructor for setting up Sampling
 buffer mes(0, 0, 0.0, 0.0);                 // constructor for setting up the buffer
-Buzzer alarmm;
-DigitalInOut redLed2 (TRAF_RED2_PIN);
-LCD_16X2_DISPLAY disp;
-bool SPUpdate = false;
+Buzzer alarmm; //buzzer alarm which does not work
+DigitalInOut redLed2 (TRAF_RED2_PIN); //red led alarm
+bool SPUpdate = false; //setpoint update partial semaphore 
 char y = NULL;                               //matrix array set to light by default
 microseconds tmrUpdate = 0ms;               //time to compare 
-EventQueue mainQueue;
-matrix_bar start;
+EventQueue mainQueue; //mainQueue for printf and other non critical functions
+matrix_bar start; // instance of matrix class
+bool press = true;
+Timer pressed;
 
 //Timers and clock related variables
 Ticker Samptick;                            //ISR for triggering sampling
 Timer updatetmr;                            //Timer for triggering update 
 
 const uint32_t RESET_TIME = 30000;          //30 sec countdown for watchdog
-int numberSamples = 0;
 
 //Threads
 Thread t1(osPriorityAboveNormal);           //Sampling Thread 
@@ -72,13 +72,12 @@ void bufferSample(){
                 mes.updatearrays(Samp.dataAVG.ldrEngAVG, Samp.dataAVG.TempAVG, Samp.dataAVG.PressAVG);
                 t4.flags_set(1);                        // set flag for updating data on IOTHub
                 i = ++i;                                // increement counter
-                numberSamples++;                        // numberSamples counter used for counting buffer
+                //printf("%d, %d \n", numberSamples, numberSpaces); uncomment if you want to see the samples and spaces going up and down to test buffer
                     if(i == (SDwriteFreq)){             // if counter is equal to specified total stored samples write to sd
                         bool empt = mail_box.empty();   //blocks if buffer is empty
                             if(!empt){                  // if not empty semephore
                                 t3.flags_set(1);        //send signal to SD card thread
                                 i = 0;                  // reset counter integer
-                                numberSamples = 0;      //reset number of samples
                             }
                     }
                 }

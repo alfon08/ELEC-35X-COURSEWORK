@@ -11,6 +11,11 @@
 //Externals:
 extern int SDwriteFreq; //ever x samples write to sd 
 extern EventQueue mainQueue;
+extern Mutex Bufflock;
+extern int numberSamples; 
+extern int numberSpaces;
+extern bool press;
+extern Timer pressed;;
 
 //Functions
 void SDCardSetup();

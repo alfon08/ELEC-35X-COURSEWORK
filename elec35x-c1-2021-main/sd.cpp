@@ -1,6 +1,7 @@
 #include "sd.hpp"
 
 SDBlockDevice sdc(PB_5, PB_4, PB_3, PF_3);
+microseconds sdreadtimer = 0ms;
 
 void SDCardSetup(){
     int err;
@@ -28,35 +29,44 @@ void SDCardWrite(){
     FATFileSystem fs("sd", &sdc); //address of file
     FILE *fp = fopen("/sd/test.txt","a"); // open file
     int p; // varible for for loop
-    //int r =0; 
     while(true){
-    // if(r == -1){
-    //     printf("repeat");
-    //     r =0;
-    // }
         if(fp == NULL) { //if file fails to open
             error("Could not open or find file for read\n"); // record error
             sdc.deinit(); //  deinit sdc
             }   
         else {
+            sdreadtimer = pressed.elapsed_time();
+            if(sdreadtimer >= 500ms){
+                press = true;
+                pressed.stop();
+            }
             ThisThread::flags_wait_any(1); // wait for flag set by buffer thread
             ThisThread::flags_clear(1);// clear threads
             FILE *fp = fopen("/sd/test.txt","a"); //Open file to  write
-                for(p = 0; p<(SDwriteFreq); p++){ // for loop to go through number of samples recorded
-                    buffer* payload; // create instance of buffer
-                    payload = mail_box.try_get(); // try to put payload size in mail box
-                    buffer msg(payload->date_time, payload->ldr, payload->Temp, payload->Press); //create message for mailbox
-                    mail_box.free(payload); // free payload 
-                    fprintf(fp, "%s", msg.date_time); //Print date and time in sd
-                    fprintf(fp, "ldr value: %d\t", msg.ldr); //print readings in sd
-                    fprintf(fp, "Temp value: %.2f\t", msg.Temp);
-                    fprintf(fp, "Press value: %.2f\t\n", msg.Press);
+            if(!(numberSamples == 0)){
+                if(Bufflock.trylock_for(5s)==true){
+                    for(p = 0; p<(SDwriteFreq); p++){ // for loop to go through number of samples recorded
+                        buffer* payload; // create instance of buffer
+                        payload = mail_box.try_get(); // try to put payload size in mail box
+                        buffer msg(payload->date_time, payload->ldr, payload->Temp, payload->Press); //create message for mailbox
+                        mail_box.free(payload); // free payload
+                        numberSamples = numberSamples -1;
+                        numberSpaces = numberSpaces +1;
+                        fprintf(fp, "%s\t ldr value: %d\t Temp value: %.2f\t Press value: %.2f", msg.date_time, msg.ldr, msg.Temp, msg.Press); //Print date and time in sd
+                        //fprintf(fp, "ldr value: %d\t", msg.ldr); //print readings in sd
+                        //fprintf(fp, "Temp value: %.2f\t", msg.Temp);
+                        //fprintf(fp, "Press value: %.2f\t\n", msg.Press);
+                    }
+                Bufflock.unlock();
+                mainQueue.call(printf, "sd card write complete\n"); // inform sd card complete
                 }
-        mainQueue.call(printf, "sd card write complete\n"); // inform sd card complete
+            }
+            else{
+                mainQueue.call(printf, "no samples to write in sd card\n"); // inform sd card complete
+            }
+            
         fclose(fp); //  clsoe file 
         p = 0; // reset variable
-        //r++;
-        //mutex2.unlock();
             }
         }   
 }
@@ -64,7 +74,7 @@ void SDCardWrite(){
 void SDCardRead(){ //Reads SD card //test to show measurements are being stored in sd
              FILE *fp = fopen("/sd/test.txt","r"); // opens file
              char buff[80]; // creates string char 
-             while (!feof(fp)) { // while loop till end of file
+             while (!(feof(fp))) { // while loop till end of file
              fgets(buff, 79, fp); // gets date from sd and stores in buff
              printf("%s\n", buff);} // prints stored data
              fclose(fp); // closes file 
@@ -72,6 +82,9 @@ void SDCardRead(){ //Reads SD card //test to show measurements are being stored 
 }
 
 void Queue_Read(){ 
-    //Wait_us(10000);                 //switch debounce
+    if(press == true){
      mainQueue.call(&SDCardRead);   //queue read sd card so it doensn't clash with anything
+     press = false;
+     pressed.start();
+                    }
                 }

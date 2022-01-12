@@ -5,24 +5,36 @@ Task 1 (Ryan): Achieved.The device reads light level using the LDR and temperatu
     be used to send date and time, a structure with the calculated average values, the constructor and two
     API defined in Sampling.cpp. 
     Sample(): checks if the samples have been updated, if they have, resets them,if not, add the updated 
-    values to the previous ones.
-    UpdateSample(): calculates the average of all the samples measured.
-    Sampling is performed in the highest priority thread.
+    values to the previous ones. This is deterministic as there is it just resets some varibales if they have 
+    been updated and samples. This is on the highest thread. This is triggered by ticker which is triggered every 
+    100ms (this can be adjustted at the top of main). 
+    UpdateSample(): calculates the average of all the samples measured. This is triggered every 9s to ensure its
+    under the specified 10s frequency using the signal wait design.
+ 
 
 
 Task 2 (Ryan): Achieved. Date time and sensor data is written to text file to the SD card. Code in sd.cpp.
     We added a function to read the SD card when you press switch A in the support board to be able to 
-    check it if needed.
+    check it if needed. To avoid switch debounce this can only be read once after every SD write. This is triggered by the 
+    buffer thread via SDWritefreq variable which utilises the signal wait design.  
 
 
 Task 3 (Ryan): Achieved. buffer.hpp includes the class with all the needed functionality for the FIFO buffer.
    buffer.cpp includes the function to write to the buffer and some other functions for other tasks
-   (explained in the other tasks).
+   (explained in the other tasks). The buffer architecrture when writing first checks if there is space in the 
+   buffer then takes the lock and then writes. The read buffer function likewise checks to see if its an empty buffer
+   the reads then takes the lock and reads. The lock is released at the end of each function. There is also a counter
+   which counts up for number of samples and counts down for number of spaces to check the buffer. To prove this uncomment
+   the printf within main / buffer sample. To FIFO returns an error if it is failed to prove this simply reduce the size 
+   of the buffer to less than the sdfreqsamp variable, this will fill the buffer up and generate an errror this starts a 30s
+   watchdog timer which then resets the system. To prove the buffer is blocking on read comment out the mes.Allocate function
+   and flush the buffer this should force the buffer to 0 and the read buffer function should be blocked. 
 
 
 Task 4 (Ryan and Anwar): Achieved - Alarm is annunciated and can be muted by the blue button for 1 min. One oversight however, is the 
-fact that once the alarm has been silenced no other alarm will be recieved until the 1min has passed. If we had more time this could
-be rectified by have a seperate acknowlege function for the different alarms. 
+   fact that once the alarm has been silenced no other alarm will be recieved until the 1min has passed. If we had more time this could
+   be rectified by have a seperate acknowlege function for the different alarms. This can be tested by hovering your hand over the ldr 
+   until it alarms, or reducing the setpoints via the IOThub to lower than the actual value. 
 
 Task 5 (Everyone): Achieved. This project is composed of 5 threads. The thread with the highest priority is t1 which is
    the thread sampling. The other threads all have the same priority. t2 controls the buffer, t3 writes to 
@@ -31,19 +43,24 @@ Task 5 (Everyone): Achieved. This project is composed of 5 threads. The thread w
    allow for threads to work one after the other when they are called respectively.
 
 Task 6 (Everyone): Achieved. Spin locks have been avoided, printf and LCD writes have been constrained to a minimum and there are 
-no waits used. 
+	no waits used. Where printfs are used they are queued up in the event queue (mainQueue). 
 
 Task 7 (Ryan and Alfonso):Achieved (partially). net.cpp includes the functions to send data to azure and to react to some commands. 
    Four string commands are needed in azure.
-   Command: performs the task including the LED matrix and the functions latest, buffered and flush
+   We had four seperate commands tabs one labled Commands (which is critical as the code looks for the char C) and the 
+   others labled LigthAlamSP, TempAlarmSP, PressAlarm SP (again these are critical as the code looks for the first char 
+   to distinguish the commands). 
+
+   Command: performs the task including the LED matrix and the functions latest / buffer / flush
    For the LED matrix write in the command:
-   L : plots light level graph
+   L : plots light level graph 
    T : plots temperature
    P : plots pressure
    For the other functions write:
-   latest - (Hub recieved data however, time is not recieved due to syntax issues)
-   buffer
-   flush
+   latest - (Hub recieved data however, time is not recieved due to syntax issues) this is displayed in the command 
+   history. 
+   buffer - confirmation is displayed in the command history and in the serial monitor
+   flush - confirmation is displayed in the command history and in the serial monitor
 
    For the other commands:
    LightAlarmSP: sets the new thresholds for the light level
@@ -73,7 +90,7 @@ Task 12 (Everyone): Achieved. Everything commented, indented and structured acco
 
 ####################################################### IMPORTANT FOR TESTING ######################################################
 
-Due to complications related SD and one we were unaware how to resolve, we figure out a certain way the Sd card and code is uploaded
+Due to complications related SD and one we were unaware how to resolve, we figured out a certain way the Sd card and code is uploaded
 before it can work. 
 It goes as follows :
 1. Compile and run the code
@@ -82,11 +99,13 @@ It goes as follows :
 
 
 Azure information: In Azure we created 7 capabilities. 3 tlemetry: Light Level, Temperature and Pressure
-4 commands: Command, LightAlarmSP, TemperatureAlarmSP and PressureAlarmSP
+4 commands: Command, LightAlarmSP, TemperatureAlarmSP and PressureAlarmSP 
 
 
 ######################################################### Bugs and Errors ##########################################################
 Bugs and errors occured during testing:
 After certain amount of SD writes the values get corrupted.The bug is very noticeable in the temperature because it reaches 200 and raises 
 very quickly. The values in the light  samples we think they get corrupted too, but because of their size (around 30000) the error doesnt
-make a huge difference. However, this was resolved by reducing the amount the buffer is holding and doing more sd writes. 
+make a huge difference. We think this is due to the size of the file on the SD card and it searching all the way through it which interferes
+with the sampling. If sd card is never written this is fine. Possibly to improve this we could generate a new file on the brink of it getting
+too large which should iradicate this issue. 

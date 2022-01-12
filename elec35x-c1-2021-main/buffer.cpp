@@ -24,9 +24,13 @@ int Lightarray[8] = {0};
 float Temparray[8] = {0};   //arrays to hold updated values of sensors
 float Pressarray[8] {0};
 int c =0;
+Mutex Bufflock;
+int numberSamples = 0;
+int numberSpaces = 16;
+
 
 void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
-    buffer* message = mail_box.try_alloc();
+    buffer* message = mail_box.try_alloc(); // look to see if there is any space in the buffer
         if (message == NULL) {                  //error handling if failed to allocate space in buffer
             redLED = 1;                         // red light comes on
             Watchdog::get_instance().kick();    //kick the watchdog and start 30 seconds from here onwards
@@ -36,7 +40,7 @@ void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
         return;
                      }
         int stringLength = strlen(dt);
-
+  
         for(int i = 0; i <= (stringLength -1); i++){
             message->date_time[i] = dt[stringLength -1-i];
             iotdate_time[stringLength -1-i] = dt[stringLength -1-i];
@@ -48,7 +52,8 @@ void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
         message-> Press = P;
         iotLight = l;                           //create some stack based local variables to hold data used later for iot purposes
         iotTemp = T;                            
-        iotPress = P;                           
+        iotPress = P; 
+        if(Bufflock.trylock_for(5s)==true){                          
         osStatus stat = mail_box.put(message);  //send message
             if (stat != osOK) {                 //if message fails error is recorded
                         redLED = 1;                     //red light comes on
@@ -60,7 +65,11 @@ void buffer::SpaceAllocate(char dt[32], int l, float T, float P){
             } 
             else{
                 greenLED = 1;                   // healthy light on if buffer write successful}
+                numberSamples = numberSamples +1;
+                numberSpaces = numberSpaces -1;
             }
+            Bufflock.unlock();
+        }
 }
 
 
