@@ -20,9 +20,9 @@ class buffer {
 
     public:
         //Public Variables
-        int ldr;                    // integer for ldr buffered sample
-        float Temp;                 // float for temp buffered sample
-        float Press;                // float for press buffered sample
+        volatile int ldr;                    // integer for ldr buffered sample - volatile because they are shared
+        volatile float Temp;                 // float for temp buffered sample
+        volatile float Press;                // float for press buffered sample
         char date_time[32];         // string for date and time
         int samplesInBuffer = 0;
 

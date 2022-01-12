@@ -302,8 +302,9 @@ void iothubrecord() {
                 break;
                 }
 
-            sprintf(message, "{ \"LightLevel\" : %d, \"Temperature\" : %5.2f, \"Pressure\" : %5.2f, \"SampTime\" : %s}", iotLight, iotTemp, iotPress, iotdate);
-            //create string message wit data
+            sprintf(message, "{ \"LightLevel\" : %d, \"Temperature\" : %5.2f, \"Pressure\" : %5.2f, \"SampTime\" : %s}", iotLight, iotTemp, iotPress, iotdate); //date is in seconds which 
+            //is converted by iot to date time // create string message wit data
+        
 
             message_handle = IoTHubMessage_CreateFromString(message); //pass message to handle
             if (message_handle == nullptr) { //if message did not send to handle create error
