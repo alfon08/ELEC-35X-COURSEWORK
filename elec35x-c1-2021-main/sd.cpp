@@ -42,7 +42,7 @@ void SDCardWrite(){
             }
             ThisThread::flags_wait_any(1); // wait for flag set by buffer thread
             ThisThread::flags_clear(1);// clear threads
-            FILE *fp = fopen("/sd/test.txt","a"); //Open file to  write
+            //FILE *fp = fopen("/sd/test.txt","a"); //Open file to  write
             if(!(numberSamples == 0)){ // blocks if buffer is empty
                 if(Bufflock.trylock_for(5s)==true){ // gets buffer lock
                     for(p = 0; p<(SDwriteFreq); p++){ // for loop to go through number of samples recorded
@@ -73,7 +73,7 @@ void SDCardRead(){ //Reads SD card //test to show measurements are being stored 
              char buff[80]; // creates string char 
              while (!(feof(fp))) { // while loop till end of file
              fgets(buff, 79, fp); // gets date from sd and stores in buff
-             printf("%s\n", buff);} // prints stored data
+             printf("%s\n", buff);} // prints stored data - doesnt work in mainQueue
              fclose(fp); // closes file 
              mainQueue.call(printf, "sd card Read complete\n"); //informs read is complete
 }

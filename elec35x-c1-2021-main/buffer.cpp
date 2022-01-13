@@ -4,10 +4,10 @@
 
 
 // variables associated with IOT
-int iotLight;
-float iotTemp;             
-float iotPress;                 
-char iotdate_time[32];
+volatile int iotLight;
+volatile float iotTemp;             
+volatile float iotPress;                 
+volatile char iotdate_time[32];
 
 // cancel alarm 
 Timer buzzT;                // timer for buzzer

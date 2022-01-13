@@ -40,7 +40,6 @@ Thread t1(osPriorityAboveNormal);           //Sampling Thread
 Thread t2(osPriorityNormal);                //Buffer Thread
 Thread t3(osPriorityNormal);                //SD card Thread
 Thread t4(osPriorityNormal);                //IOTHub Thread
-
 Thread t6(osPriorityNormal);                //matric thread
 
 //                                    THREADS                                                  

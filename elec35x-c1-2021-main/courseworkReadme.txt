@@ -101,5 +101,23 @@ It goes as follows :
 Azure information: In Azure we created 7 capabilities. 3 tlemetry: Light Level, Temperature and Pressure
 4 commands: Command, LightAlarmSP, TemperatureAlarmSP and PressureAlarmSP 
 
+Setup for each azure property:
+
+Light Level "LightLevel" intenger Telemetry
+Temperature "Temperature" double Telemetry
+Pressure "Pressure" doube Telemetry
+SampTime "SampTime" DateTime Telemetry
+Commands "Commands" Command Req - "SampleSelection" string, Res "cmd_res" string
+LightAlarmSP "LightAlarmSP" Command Req - "AlarmSet" string, Res - "AlarmRes" string
+TempAlarmSP "LightAlarmSP" Command Req - "AlarmSet" string, Res - "AlarmRes" string
+PressAlarmSP "LightAlarmSP" Command Req - "AlarmSet" string, Res - "AlarmRes" string
+
+Bug: After a period of time ~10+mins the readings for temp and press drift and slowly get worse, we are usure exactly why this is
+however, we feel it is something to do with the sd card write and this interfering with the buffer after the sd file gets to a certian
+level of storage. We have tested this without the sd card write and this does not happen. It is also very random, sometimes it happens
+after 10 mins sometimes not at all which is very hard to fault find.  - Resolved by removal of the second open file within sd card write 
+function. 
+
+
 
 
